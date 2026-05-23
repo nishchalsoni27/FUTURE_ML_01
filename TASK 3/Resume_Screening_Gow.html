@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Resume Screening System — Nishchal Soni</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --blood: #8B1A1A;
+    --ember: #C0392B;
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: #7A5C1E;
+    --ash: #1A1208;
+    --dark: #0D0B07;
+    --stone: #2A2318;
+    --stone-light: #3D3325;
+    --rune: #5C4A1E;
+    --text: #D4C5A9;
+    --text-dim: #8A7A5A;
+    --accent-blue: #1A3A5C;
+    --frost: #4ECDC4;
+    --glow: rgba(201,168,76,0.15);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* === RUNIC BACKGROUND === */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,26,26,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 10% 80%, rgba(201,168,76,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 40% at 90% 20%, rgba(201,168,76,0.04) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* Runic symbols background */
+  body::after {
+    content: 'ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ ᚺ ᚾ ᛁ ᛃ ᛇ ᛈ ᛉ ᛊ ᛏ ᛒ ᛖ ᛗ ᛚ ᛜ ᛞ ᛟ ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ ᚺ ᚾ ᛁ ᛃ ᛇ ᛈ ᛉ ᛊ ᛏ ᛒ ᛖ ᛗ ᛚ ᛜ ᛞ ᛟ';
+    position: fixed;
+    inset: 0;
+    font-size: 1.4rem;
+    color: rgba(201,168,76,0.03);
+    line-height: 3.5rem;
+    letter-spacing: 1.5rem;
+    word-break: break-all;
+    pointer-events: none; z-index: 0;
+    padding: 2rem;
+  }
+
+  /* === SCAN LINE OVERLAY === */
+  .scanlines {
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+    pointer-events: none; z-index: 1;
+  }
+
+  .wrapper { position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  /* === HEADER === */
+  header {
+    text-align: center;
+    padding: 3rem 0 2rem;
+    position: relative;
+  }
+
+  .gow-badge {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.4rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+    border: 1px solid var(--rune);
+    padding: 0.3rem 1.5rem;
+    position: relative;
+  }
+
+  .gow-badge::before, .gow-badge::after {
+    content: '✦';
+    color: var(--gold);
+    margin: 0 0.5rem;
+  }
+
+  .main-title {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: clamp(1.6rem, 4vw, 3rem);
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--gold);
+    text-shadow:
+      0 0 30px rgba(201,168,76,0.4),
+      0 0 60px rgba(201,168,76,0.15),
+      2px 2px 0px var(--blood);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.4rem;
+    animation: titlePulse 4s ease-in-out infinite;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { text-shadow: 0 0 30px rgba(201,168,76,0.4), 0 0 60px rgba(201,168,76,0.15), 2px 2px 0px var(--blood); }
+    50% { text-shadow: 0 0 50px rgba(201,168,76,0.7), 0 0 100px rgba(201,168,76,0.3), 2px 2px 0px var(--ember); }
+  }
+
+  .sub-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.3rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 1.5rem auto;
+    max-width: 600px;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold-dim), transparent);
+  }
+
+  .divider-rune {
+    font-size: 1.2rem; color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.6);
+  }
+
+  .creator-tag {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2rem;
+    margin-top: 0.5rem;
+  }
+
+  .creator-tag span { color: var(--gold); }
+
+  /* === AXE SEPARATOR === */
+  .axe-sep {
+    text-align: center;
+    font-size: 1.5rem;
+    color: var(--gold);
+    margin: 1.5rem 0;
+    text-shadow: 0 0 15px rgba(201,168,76,0.5);
+    animation: spin3d 6s ease-in-out infinite;
+  }
+
+  @keyframes spin3d {
+    0%, 100% { transform: rotateY(0deg); }
+    50% { transform: rotateY(180deg); }
+  }
+
+  /* === PANELS === */
+  .panel {
+    background: linear-gradient(135deg, rgba(42,35,24,0.95) 0%, rgba(26,18,8,0.98) 100%);
+    border: 1px solid var(--rune);
+    border-radius: 4px;
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(201,168,76,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Corner rune decoration */
+  .panel::after {
+    content: 'ᚠ';
+    position: absolute;
+    top: 0.5rem; right: 0.8rem;
+    font-size: 0.9rem;
+    color: rgba(201,168,76,0.15);
+  }
+
+  .panel:hover {
+    border-color: var(--gold-dim);
+    box-shadow: 0 0 30px rgba(201,168,76,0.08), inset 0 0 30px rgba(201,168,76,0.02);
+  }
+
+  .panel-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.35rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    display: flex; align-items: center; gap: 0.8rem;
+  }
+
+  .panel-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--rune), transparent);
+  }
+
+  /* === GRID === */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+  @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* === INPUTS === */
+  .field-group { margin-bottom: 1rem; }
+
+  label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.25rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: rgba(13,11,7,0.9);
+    border: 1px solid var(--rune);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    padding: 0.6rem 0.9rem;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    resize: vertical;
+  }
+
+  input[type="text"]:focus, textarea:focus, select:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 15px rgba(201,168,76,0.15), inset 0 0 10px rgba(201,168,76,0.04);
+  }
+
+  input::placeholder, textarea::placeholder { color: var(--text-dim); font-size: 0.85rem; }
+
+  select option { background: var(--stone); }
+
+  textarea { min-height: 120px; }
+
+  /* === SKILL TAGS === */
+  .skill-tags {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0.5rem;
+    background: rgba(13,11,7,0.9);
+    border: 1px solid var(--rune);
+    border-radius: 3px;
+    cursor: text;
+  }
+
+  .skill-tags:focus-within { border-color: var(--gold); box-shadow: 0 0 15px rgba(201,168,76,0.15); }
+
+  .tag {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: linear-gradient(135deg, var(--stone), var(--stone-light));
+    border: 1px solid var(--gold-dim);
+    border-radius: 2px;
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.1rem;
+    padding: 0.25rem 0.5rem;
+    text-transform: uppercase;
+    animation: tagAppear 0.3s ease;
+  }
+
+  @keyframes tagAppear { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+  .tag-remove {
+    cursor: pointer; color: var(--ember);
+    font-size: 0.8rem; line-height: 1;
+    transition: color 0.2s;
+  }
+
+  .tag-remove:hover { color: var(--blood); }
+
+  .tag-input {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    min-width: 120px;
+    flex: 1;
+    padding: 0.1rem 0.3rem;
+  }
+
+  /* === BUTTONS === */
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.2rem;
+    text-transform: uppercase;
+    padding: 0.75rem 1.8rem;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blood) 0%, var(--ember) 50%, var(--blood) 100%);
+    color: var(--gold-light);
+    border: 1px solid rgba(201,168,76,0.3);
+    box-shadow: 0 4px 20px rgba(139,26,26,0.4), inset 0 1px 0 rgba(201,168,76,0.1);
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn-primary:hover::before { left: 100%; }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(139,26,26,0.6), 0 0 20px rgba(201,168,76,0.15);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(201,168,76,0.08);
+    border-color: var(--gold);
+    box-shadow: 0 0 15px rgba(201,168,76,0.1);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--rune);
+    font-size: 0.6rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .btn-ghost:hover { color: var(--text); border-color: var(--stone-light); }
+
+  .btn-row { display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center; margin-top: 1.2rem; }
+
+  /* === CANDIDATES LIST === */
+  .candidates-list { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1rem; }
+
+  .candidate-card {
+    background: rgba(13,11,7,0.8);
+    border: 1px solid var(--rune);
+    border-radius: 3px;
+    padding: 1rem 1.2rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.8rem;
+    align-items: start;
+    transition: border-color 0.3s, transform 0.2s;
+    position: relative;
+  }
+
+  .candidate-card:hover { border-color: var(--gold-dim); transform: translateX(3px); }
+
+  .candidate-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--gold-light);
+    letter-spacing: 0.05rem;
+  }
+
+  .candidate-preview {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 0.2rem;
+    line-height: 1.4;
+    max-height: 2.8rem;
+    overflow: hidden;
+  }
+
+  .candidate-actions { display: flex; gap: 0.4rem; }
+
+  .remove-btn {
+    background: none; border: 1px solid rgba(139,26,26,0.4);
+    color: var(--blood); border-radius: 2px;
+    width: 1.6rem; height: 1.6rem;
+    cursor: pointer; font-size: 0.7rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .remove-btn:hover { background: rgba(139,26,26,0.2); border-color: var(--ember); }
+
+  /* === RESULTS === */
+  #results-section { display: none; }
+
+  .result-card {
+    background: linear-gradient(135deg, rgba(42,35,24,0.95) 0%, rgba(26,18,8,0.98) 100%);
+    border: 1px solid var(--rune);
+    border-radius: 4px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 0.8rem;
+    display: grid;
+    grid-template-columns: 2.5rem 1fr auto;
+    gap: 1rem;
+    align-items: start;
+    position: relative;
+    transition: all 0.4s;
+    animation: cardReveal 0.5s ease backwards;
+  }
+
+  @keyframes cardReveal {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .result-card.rank-1 { border-color: var(--gold); box-shadow: 0 0 20px rgba(201,168,76,0.1), -3px 0 0 var(--gold); }
+  .result-card.rank-2 { border-color: #A8A9AD; box-shadow: -3px 0 0 #A8A9AD; }
+  .result-card.rank-3 { border-color: #CD7F32; box-shadow: -3px 0 0 #CD7F32; }
+
+  .rank-badge {
+    width: 2.5rem; height: 2.5rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 0.9rem;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+
+  .rank-1 .rank-badge { background: radial-gradient(circle, var(--gold), var(--gold-dim)); color: var(--dark); box-shadow: 0 0 15px rgba(201,168,76,0.5); }
+  .rank-2 .rank-badge { background: radial-gradient(circle, #A8A9AD, #6C6D6F); color: var(--dark); }
+  .rank-3 .rank-badge { background: radial-gradient(circle, #CD7F32, #8B5E3C); color: var(--dark); }
+  .rank-badge.other { background: var(--stone); color: var(--text-dim); font-size: 0.75rem; }
+
+  .result-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold-light);
+    margin-bottom: 0.3rem;
+  }
+
+  .score-display {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .score-number {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1;
+    animation: countUp 1s ease;
+  }
+
+  @keyframes countUp { from { opacity: 0; } to { opacity: 1; } }
+
+  .score-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.15rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .score-high { color: #4CAF50; }
+  .score-mid { color: var(--gold); }
+  .score-low { color: var(--ember); }
+  .score-poor { color: var(--blood); }
+
+  /* Progress bar */
+  .score-bar-wrap {
+    background: rgba(13,11,7,0.8);
+    border-radius: 2px;
+    height: 4px;
+    margin: 0.5rem 0;
+    overflow: hidden;
+  }
+
+  .score-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+  }
+
+  .score-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 6px; height: 100%;
+    background: rgba(255,255,255,0.5);
+    filter: blur(2px);
+  }
+
+  /* Skill pills in results */
+  .skill-pill {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.1rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+    margin: 0.15rem;
+    text-transform: uppercase;
+  }
+
+  .skill-matched { background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.3); color: #81C784; }
+  .skill-missing { background: rgba(139,26,26,0.2); border: 1px solid rgba(192,57,43,0.4); color: var(--ember); }
+
+  /* === STATS BAR === */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .stat-block {
+    background: rgba(13,11,7,0.7);
+    border: 1px solid var(--rune);
+    border-radius: 3px;
+    padding: 0.8rem;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1.6rem;
+    color: var(--gold);
+    font-weight: 900;
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+    line-height: 1;
+  }
+
+  .stat-lbl {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.2rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+  }
+
+  /* === LOADING === */
+  #loading {
+    display: none;
+    text-align: center;
+    padding: 3rem;
+  }
+
+  .gow-spinner {
+    width: 60px; height: 60px;
+    margin: 0 auto 1rem;
+    border: 3px solid var(--rune);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    position: relative;
+  }
+
+  .gow-spinner::after {
+    content: 'ᚠ';
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold);
+    font-size: 1.2rem;
+    animation: spin 0.8s linear infinite reverse;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3rem;
+    color: var(--text-dim);
+    animation: blink 1s ease-in-out infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  /* === NOTIFICATIONS === */
+  .toast {
+    position: fixed;
+    bottom: 2rem; right: 2rem;
+    background: linear-gradient(135deg, var(--stone), var(--stone-light));
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    padding: 0.8rem 1.2rem;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.15rem;
+    color: var(--gold-light);
+    z-index: 9999;
+    animation: slideIn 0.4s ease, fadeOut 0.4s ease 2.6s forwards;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  @keyframes slideIn { from { transform: translateX(150%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeOut { to { opacity: 0; transform: translateX(150%); } }
+
+  /* === SAMPLE DATA === */
+  .sample-btn-row {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    margin-top: 0.8rem;
+  }
+
+  /* === FOOTER === */
+  footer {
+    text-align: center;
+    padding: 2rem 0;
+    border-top: 1px solid var(--rune);
+    margin-top: 3rem;
+  }
+
+  .footer-rune {
+    font-size: 2rem; color: var(--gold);
+    text-shadow: 0 0 15px rgba(201,168,76,0.3);
+    display: block; margin-bottom: 0.5rem;
+  }
+
+  .footer-text {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.3rem;
+    color: var(--text-dim);
+  }
+
+  .footer-text span { color: var(--gold); }
+
+  /* === HOW IT WORKS === */
+  .how-step {
+    display: flex; gap: 1rem; align-items: flex-start;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid rgba(92,74,30,0.3);
+  }
+
+  .how-step:last-child { border-bottom: none; }
+
+  .step-num {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--gold);
+    flex-shrink: 0;
+    width: 2rem;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+    line-height: 1.2;
+  }
+
+  .step-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    color: var(--gold-light);
+    letter-spacing: 0.1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .step-desc {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* Glow line */
+  .glow-line {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold-dim), var(--gold), var(--gold-dim), transparent);
+    margin: 2rem 0;
+    box-shadow: 0 0 8px rgba(201,168,76,0.3);
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 600px) {
+    .result-card { grid-template-columns: 2rem 1fr auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="gow-badge">Task 3 · Machine Learning Project</div>
+    <h1 class="main-title">Resume & Candidate<br>Screening System</h1>
+    <p class="sub-title">Skill Extraction · Candidate Ranking · Gap Analysis</p>
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-rune">ᚠ</div>
+      <div class="divider-line"></div>
+    </div>
+    <p class="creator-tag">Crafted by <span>Nishchal Soni</span></p>
+  </header>
+
+  <!-- HOW IT WORKS -->
+  <div class="panel">
+    <div class="panel-title">ᚱ How This System Works</div>
+    <div class="how-step">
+      <div class="step-num">1</div>
+      <div>
+        <div class="step-title">Define the Job Role & Required Skills</div>
+        <div class="step-desc">Enter the job title and list all skills the role requires. These become the benchmark features extracted from resumes using NLP (spaCy/NLTK keyword matching).</div>
+      </div>
+    </div>
+    <div class="how-step">
+      <div class="step-num">2</div>
+      <div>
+        <div class="step-title">Add Candidate Resumes</div>
+        <div class="step-desc">Paste resume text for each candidate. The system parses and cleans the text, extracting mentioned skills and technologies via token matching and lemmatization.</div>
+      </div>
+    </div>
+    <div class="how-step">
+      <div class="step-num">3</div>
+      <div>
+        <div class="step-title">ML Scoring Engine Runs</div>
+        <div class="step-desc">Using TF-IDF vectorization + cosine similarity (scikit-learn), each resume is compared against the job description. A weighted score (0–100) is computed considering skill match %, keyword density, and experience signals.</div>
+      </div>
+    </div>
+    <div class="how-step">
+      <div class="step-num">4</div>
+      <div>
+        <div class="step-title">Ranked Results + Gap Analysis</div>
+        <div class="step-desc">Candidates are sorted by score. Matched skills are highlighted in green; missing required skills are flagged in red — giving recruiters an instant gap analysis.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glow-line"></div>
+  <div class="axe-sep">⚔</div>
+  <div class="glow-line"></div>
+
+  <!-- JOB DESCRIPTION PANEL -->
+  <div class="panel">
+    <div class="panel-title">ᛃ Job Configuration</div>
+    <div class="grid-2">
+      <div class="field-group">
+        <label>Job Title / Role</label>
+        <input type="text" id="jobTitle" placeholder="e.g. Machine Learning Engineer" />
+      </div>
+      <div class="field-group">
+        <label>Experience Level</label>
+        <select id="expLevel">
+          <option value="any">Any Level</option>
+          <option value="junior">Junior (0–2 yrs)</option>
+          <option value="mid">Mid-Level (2–5 yrs)</option>
+          <option value="senior">Senior (5+ yrs)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Job Description (optional — used for TF-IDF similarity)</label>
+      <textarea id="jobDesc" placeholder="Paste full job description here for deeper semantic matching..."></textarea>
+    </div>
+    <div class="field-group">
+      <label>Required Skills <span style="color:var(--text-dim); font-size:0.6rem">(Press ENTER or comma to add)</span></label>
+      <div class="skill-tags" id="reqSkillsContainer" onclick="document.getElementById('reqSkillInput').focus()">
+        <input class="tag-input" id="reqSkillInput" placeholder="Type skill + Enter..." />
+      </div>
+    </div>
+    <div class="sample-btn-row">
+      <button class="btn btn-ghost" onclick="loadSampleJob('ml')">⚡ Sample: ML Engineer</button>
+      <button class="btn btn-ghost" onclick="loadSampleJob('fe')">⚡ Sample: Frontend Dev</button>
+      <button class="btn btn-ghost" onclick="loadSampleJob('data')">⚡ Sample: Data Analyst</button>
+    </div>
+  </div>
+
+  <!-- CANDIDATES PANEL -->
+  <div class="panel">
+    <div class="panel-title">ᛈ Candidate Roster</div>
+    <div class="grid-2">
+      <div class="field-group">
+        <label>Candidate Name</label>
+        <input type="text" id="candName" placeholder="Full name of candidate" />
+      </div>
+      <div class="field-group">
+        <label>Years of Experience</label>
+        <input type="text" id="candExp" placeholder="e.g. 3" />
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Resume Text (paste or type)</label>
+      <textarea id="candResume" placeholder="Paste the candidate's resume text here..."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="addCandidate()">+ Add Candidate</button>
+      <button class="btn btn-ghost" onclick="addSampleCandidates()">⚡ Load Sample Candidates</button>
+    </div>
+
+    <div id="candidatesList" class="candidates-list" style="margin-top:1.2rem"></div>
+  </div>
+
+  <!-- ANALYZE BUTTON -->
+  <div style="text-align:center; margin: 2rem 0;">
+    <button class="btn btn-primary" style="font-size:0.8rem; padding:1rem 3rem" onclick="runScreening()">
+      ⚔ &nbsp; SCREEN & RANK CANDIDATES &nbsp; ⚔
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading">
+    <div class="gow-spinner"></div>
+    <div class="loading-text">ANALYSING WARRIORS...</div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results-section">
+    <div class="glow-line"></div>
+    <div class="axe-sep">🏆</div>
+    <div class="glow-line"></div>
+
+    <div class="panel">
+      <div class="panel-title">ᛟ Screening Results</div>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div id="resultsList"></div>
+    </div>
+
+    <!-- EXPORT -->
+    <div style="text-align:center; margin-top:1.5rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="exportCSV()">↓ Export CSV</button>
+      <button class="btn btn-secondary" onclick="exportJSON()">↓ Export JSON</button>
+      <button class="btn btn-ghost" onclick="resetAll()">↺ New Screening</button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <span class="footer-rune">ᚠ</span>
+    <div class="footer-text">
+      Resume Screening System · <span>Nishchal Soni</span> · Built with Python (spaCy/NLTK) + Scikit-learn · Inspired by <span>God of War 2018</span>
+    </div>
+    <div class="footer-text" style="margin-top:0.5rem; font-size:0.55rem">
+      Skills: Text Analysis · Feature Extraction · TF-IDF · Cosine Similarity · Candidate Ranking · Skill Gap Identification
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// ===== STATE =====
+let requiredSkills = [];
+let candidates = [];
+let screeningResults = [];
+
+// ===== SKILL TAG INPUT =====
+const reqSkillInput = document.getElementById('reqSkillInput');
+
+reqSkillInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = reqSkillInput.value.trim().replace(',', '');
+    if (val) addSkillTag(val);
+    reqSkillInput.value = '';
+  }
+  if (e.key === 'Backspace' && !reqSkillInput.value && requiredSkills.length) {
+    removeSkillTag(requiredSkills.length - 1);
+  }
+});
+
+function addSkillTag(skill) {
+  const s = skill.trim();
+  if (!s || requiredSkills.includes(s.toLowerCase())) return;
+  requiredSkills.push(s.toLowerCase());
+  renderSkillTags();
+}
+
+function removeSkillTag(idx) {
+  requiredSkills.splice(idx, 1);
+  renderSkillTags();
+}
+
+function renderSkillTags() {
+  const container = document.getElementById('reqSkillsContainer');
+  const input = document.getElementById('reqSkillInput');
+  container.innerHTML = '';
+  requiredSkills.forEach((skill, i) => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.innerHTML = `${skill} <span class="tag-remove" onclick="removeSkillTag(${i})">✕</span>`;
+    container.appendChild(tag);
+  });
+  container.appendChild(input);
+  input.focus();
+}
+
+// ===== CANDIDATES =====
+function addCandidate() {
+  const name = document.getElementById('candName').value.trim();
+  const exp = parseFloat(document.getElementById('candExp').value) || 0;
+  const resume = document.getElementById('candResume').value.trim();
+
+  if (!name) { showToast('Enter candidate name'); return; }
+  if (!resume) { showToast('Enter resume text'); return; }
+
+  candidates.push({ id: Date.now(), name, exp, resume });
+  renderCandidates();
+
+  document.getElementById('candName').value = '';
+  document.getElementById('candExp').value = '';
+  document.getElementById('candResume').value = '';
+  showToast(`${name} added to roster`);
+}
+
+function removeCandidate(id) {
+  candidates = candidates.filter(c => c.id !== id);
+  renderCandidates();
+}
+
+function renderCandidates() {
+  const list = document.getElementById('candidatesList');
+  if (!candidates.length) { list.innerHTML = ''; return; }
+  list.innerHTML = candidates.map(c => `
+    <div class="candidate-card">
+      <div>
+        <div class="candidate-name">${c.name} ${c.exp ? `<span style="color:var(--text-dim);font-size:0.7rem;font-family:'Cinzel',serif">(${c.exp} yr${c.exp !== 1 ? 's' : ''})</span>` : ''}</div>
+        <div class="candidate-preview">${c.resume.substring(0, 120)}...</div>
+      </div>
+      <div class="candidate-actions">
+        <button class="remove-btn" onclick="removeCandidate(${c.id})" title="Remove">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== SCORING ENGINE (ML simulation) =====
+function tokenize(text) {
+  return text.toLowerCase()
+    .replace(/[^a-z0-9#+.\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function computeTFIDF(doc, corpus) {
+  const tokens = tokenize(doc);
+  const tf = {};
+  tokens.forEach(t => tf[t] = (tf[t] || 0) + 1);
+  Object.keys(tf).forEach(t => tf[t] /= tokens.length);
+
+  const idf = {};
+  const N = corpus.length;
+  Object.keys(tf).forEach(term => {
+    const df = corpus.filter(d => tokenize(d).includes(term)).length;
+    idf[term] = Math.log((N + 1) / (df + 1)) + 1;
+  });
+
+  const tfidf = {};
+  Object.keys(tf).forEach(t => tfidf[t] = tf[t] * idf[t]);
+  return tfidf;
+}
+
+function cosineSim(vecA, vecB) {
+  const keys = new Set([...Object.keys(vecA), ...Object.keys(vecB)]);
+  let dot = 0, magA = 0, magB = 0;
+  keys.forEach(k => {
+    const a = vecA[k] || 0, b = vecB[k] || 0;
+    dot += a * b; magA += a * a; magB += b * b;
+  });
+  if (!magA || !magB) return 0;
+  return dot / (Math.sqrt(magA) * Math.sqrt(magB));
+}
+
+function extractSkills(text, skills) {
+  const lower = text.toLowerCase();
+  return skills.filter(skill => {
+    const re = new RegExp('\\b' + skill.replace(/[+.]/g, '\\$&') + '\\b', 'i');
+    return re.test(lower);
+  });
+}
+
+function experienceBonus(expYears, level) {
+  if (level === 'any') return 5;
+  if (level === 'junior') return expYears <= 2 ? 8 : Math.max(0, 8 - (expYears - 2) * 2);
+  if (level === 'mid') return expYears >= 2 && expYears <= 5 ? 8 : Math.max(0, 8 - Math.abs(expYears - 3.5) * 2);
+  if (level === 'senior') return expYears >= 5 ? 8 : Math.max(0, expYears * 1.5);
+  return 5;
+}
+
+function scoreCandidate(candidate, jobTitle, jobDesc, skills, expLevel, corpus) {
+  const resumeTokens = tokenize(candidate.resume);
+
+  // 1. Skill match score (50%)
+  const matched = extractSkills(candidate.resume, skills);
+  const skillScore = skills.length ? (matched.length / skills.length) * 50 : 25;
+
+  // 2. TF-IDF cosine similarity with JD (30%)
+  let simScore = 0;
+  const jdText = jobTitle + ' ' + jobDesc + ' ' + skills.join(' ');
+  if (jdText.trim()) {
+    const allDocs = [jdText, ...corpus];
+    const jdVec = computeTFIDF(jdText, allDocs);
+    const resVec = computeTFIDF(candidate.resume, allDocs);
+    simScore = cosineSim(jdVec, resVec) * 30;
+  }
+
+  // 3. Experience bonus (10%)
+  const expScore = experienceBonus(candidate.exp, expLevel);
+
+  // 4. Keyword density bonus (10%)
+  const jobKeywords = tokenize(jobTitle + ' ' + skills.join(' '));
+  const resumeSet = new Set(resumeTokens);
+  const keywordHits = jobKeywords.filter(k => resumeSet.has(k)).length;
+  const kdScore = Math.min(10, (keywordHits / Math.max(1, jobKeywords.length)) * 15);
+
+  const total = Math.min(100, Math.round(skillScore + simScore + expScore + kdScore));
+  const missing = skills.filter(s => !matched.includes(s));
+
+  return { matched, missing, total, skillScore: Math.round(skillScore), simScore: Math.round(simScore), expScore: Math.round(expScore), kdScore: Math.round(kdScore) };
+}
+
+// ===== RUN SCREENING =====
+function runScreening() {
+  const jobTitle = document.getElementById('jobTitle').value.trim();
+  const jobDesc = document.getElementById('jobDesc').value.trim();
+  const expLevel = document.getElementById('expLevel').value;
+
+  if (!jobTitle) { showToast('Please enter a job title'); return; }
+  if (!requiredSkills.length) { showToast('Add at least one required skill'); return; }
+  if (!candidates.length) { showToast('Add at least one candidate'); return; }
+
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('results-section').style.display = 'none';
+
+  setTimeout(() => {
+    const corpus = candidates.map(c => c.resume);
+
+    screeningResults = candidates.map(c => {
+      const scores = scoreCandidate(c, jobTitle, jobDesc, requiredSkills, expLevel, corpus);
+      return { ...c, ...scores };
+    }).sort((a, b) => b.total - a.total);
+
+    document.getElementById('loading').style.display = 'none';
+    renderResults();
+    document.getElementById('results-section').style.display = 'block';
+    document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 1500);
+}
+
+function getScoreClass(score) {
+  if (score >= 75) return 'score-high';
+  if (score >= 50) return 'score-mid';
+  if (score >= 30) return 'score-low';
+  return 'score-poor';
+}
+
+function getBarColor(score) {
+  if (score >= 75) return 'linear-gradient(to right, #2E7D32, #4CAF50)';
+  if (score >= 50) return 'linear-gradient(to right, var(--gold-dim), var(--gold))';
+  if (score >= 30) return 'linear-gradient(to right, #7A3E00, var(--ember))';
+  return 'linear-gradient(to right, #4A0A0A, var(--blood))';
+}
+
+function getRankClass(i) {
+  if (i === 0) return 'rank-1';
+  if (i === 1) return 'rank-2';
+  if (i === 2) return 'rank-3';
+  return '';
+}
+
+function renderResults() {
+  // Stats
+  const avgScore = Math.round(screeningResults.reduce((a, c) => a + c.total, 0) / screeningResults.length);
+  const shortlisted = screeningResults.filter(c => c.total >= 60).length;
+  const topScore = screeningResults[0]?.total || 0;
+  const fullMatch = screeningResults.filter(c => c.missing.length === 0).length;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-block"><div class="stat-val">${screeningResults.length}</div><div class="stat-lbl">Candidates</div></div>
+    <div class="stat-block"><div class="stat-val" style="color:#4CAF50">${shortlisted}</div><div class="stat-lbl">Shortlisted (≥60)</div></div>
+    <div class="stat-block"><div class="stat-val">${avgScore}</div><div class="stat-lbl">Avg Score</div></div>
+    <div class="stat-block"><div class="stat-val" style="color:var(--gold)">${topScore}</div><div class="stat-lbl">Top Score</div></div>
+  `;
+
+  const list = document.getElementById('resultsList');
+  list.innerHTML = screeningResults.map((c, i) => `
+    <div class="result-card ${getRankClass(i)}" style="animation-delay:${i * 0.1}s">
+      <div class="rank-badge ${i > 2 ? 'other' : ''}">${i > 2 ? i + 1 : ['I','II','III'][i]}</div>
+      <div>
+        <div class="result-name">${c.name}</div>
+        <div style="font-size:0.75rem;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:0.1rem;margin-bottom:0.4rem">
+          ${c.exp ? `${c.exp} yr${c.exp !== 1 ? 's' : ''} exp` : 'Exp: unspecified'} &nbsp;·&nbsp;
+          Skills: ${c.matched.length}/${requiredSkills.length} matched
+        </div>
+        <div class="score-bar-wrap">
+          <div class="score-bar" style="width:${c.total}%;background:${getBarColor(c.total)}"></div>
+        </div>
+        <div style="margin-top:0.4rem">
+          ${c.matched.map(s => `<span class="skill-pill skill-matched">✓ ${s}</span>`).join('')}
+          ${c.missing.map(s => `<span class="skill-pill skill-missing">✗ ${s}</span>`).join('')}
+        </div>
+        <div style="margin-top:0.6rem;font-size:0.7rem;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:0.08rem">
+          Skill Match: <span style="color:var(--text)">${c.skillScore}%</span> &nbsp;·&nbsp;
+          Similarity: <span style="color:var(--text)">${c.simScore}%</span> &nbsp;·&nbsp;
+          Exp Fit: <span style="color:var(--text)">${c.expScore}%</span> &nbsp;·&nbsp;
+          Keyword: <span style="color:var(--text)">${c.kdScore}%</span>
+        </div>
+      </div>
+      <div class="score-display">
+        <div class="score-number ${getScoreClass(c.total)}">${c.total}</div>
+        <div class="score-label">/ 100</div>
+        <div style="font-family:'Cinzel',serif;font-size:0.55rem;color:${c.total >= 60 ? '#4CAF50' : 'var(--ember)'};margin-top:0.2rem;letter-spacing:0.1rem">
+          ${c.total >= 75 ? 'CHAMPION' : c.total >= 60 ? 'WORTHY' : c.total >= 40 ? 'CONTENDER' : 'UNWORTHY'}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== EXPORT =====
+function exportCSV() {
+  const header = 'Rank,Name,Score,Experience,Matched Skills,Missing Skills';
+  const rows = screeningResults.map((c, i) =>
+    `${i + 1},"${c.name}",${c.total},${c.exp},"${c.matched.join('; ')}","${c.missing.join('; ')}"`
+  );
+  download('screening_results.csv', [header, ...rows].join('\n'), 'text/csv');
+}
+
+function exportJSON() {
+  const data = screeningResults.map((c, i) => ({
+    rank: i + 1, name: c.name, score: c.total, experience: c.exp,
+    matched_skills: c.matched, missing_skills: c.missing,
+    score_breakdown: { skill_match: c.skillScore, similarity: c.simScore, experience_fit: c.expScore, keyword_density: c.kdScore }
+  }));
+  download('screening_results.json', JSON.stringify(data, null, 2), 'application/json');
+}
+
+function download(filename, text, type) {
+  const blob = new Blob([text], { type });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  showToast(`${filename} exported`);
+}
+
+// ===== SAMPLE DATA =====
+const samples = {
+  ml: {
+    title: 'Machine Learning Engineer',
+    desc: 'We are looking for an ML Engineer to design and build scalable machine learning systems. You will work with large datasets, build models for predictions, and deploy them to production.',
+    skills: ['python', 'machine learning', 'tensorflow', 'scikit-learn', 'nlp', 'pandas', 'numpy', 'deep learning', 'sql', 'docker']
+  },
+  fe: {
+    title: 'Frontend Developer',
+    desc: 'Looking for a passionate Frontend Developer to create stunning web interfaces.',
+    skills: ['javascript', 'react', 'css', 'html', 'typescript', 'node.js', 'git', 'rest api', 'webpack', 'tailwind']
+  },
+  data: {
+    title: 'Data Analyst',
+    desc: 'Data Analyst to transform data into insights and build dashboards.',
+    skills: ['python', 'sql', 'excel', 'tableau', 'power bi', 'pandas', 'statistics', 'data visualization', 'r', 'etl']
+  }
+};
+
+const sampleCandidates = [
+  {
+    name: 'Aditya Sharma',
+    exp: 4,
+    resume: `Aditya Sharma - Senior ML Engineer
+    4 years of experience in machine learning and data science.
+    Skills: Python, TensorFlow, scikit-learn, pandas, numpy, SQL, Docker, NLP, deep learning, REST APIs.
+    Experience: Built recommendation systems using collaborative filtering. Developed NLP pipelines using spaCy and BERT.
+    Deployed models on AWS SageMaker. Strong background in feature engineering and model evaluation.
+    Education: B.Tech in Computer Science. Kaggle Competitions - top 10% in NLP challenges.`
+  },
+  {
+    name: 'Priya Verma',
+    exp: 2,
+    resume: `Priya Verma - ML Developer
+    2 years experience. Python developer with focus on data analysis.
+    Skills: Python, pandas, numpy, machine learning basics, scikit-learn, matplotlib.
+    Built classification models for customer churn. Used logistic regression and random forests.
+    Familiar with SQL and basic NLP tasks. No experience with deep learning or Docker yet.
+    Education: MCA from DAVV Indore.`
+  },
+  {
+    name: 'Rahul Gupta',
+    exp: 6,
+    resume: `Rahul Gupta - AI/ML Architect  
+    6 years building enterprise ML systems.
+    Skills: Python, TensorFlow, PyTorch, NLP, deep learning, Docker, Kubernetes, SQL, Redis, scikit-learn, pandas, numpy, MLflow.
+    Led team of 5 engineers. Designed end-to-end ML pipelines from data ingestion to model serving.
+    Published 2 papers on transformer-based NLP systems. Expert in BERT, GPT fine-tuning.
+    Contributed to open-source ML libraries. AWS Certified ML Specialist.`
+  },
+  {
+    name: 'Vikram Nair',
+    exp: 3,
+    resume: `Vikram Nair - Data Scientist
+    3 years in analytics and ML.
+    Skills: Python, R, SQL, scikit-learn, machine learning, NLP, pandas, numpy, Tableau, statistics.
+    Experience in predictive analytics, A/B testing, hypothesis testing.
+    Built NLP models for customer support automation. Familiar with TensorFlow basics but not production deployment.
+    Strong in statistical modelling and data storytelling. MBA + M.Sc Statistics background.`
+  }
+];
+
+function loadSampleJob(type) {
+  const sample = samples[type];
+  document.getElementById('jobTitle').value = sample.title;
+  document.getElementById('jobDesc').value = sample.desc;
+  requiredSkills = [];
+  sample.skills.forEach(s => addSkillTag(s));
+  showToast(`Loaded: ${sample.title}`);
+}
+
+function addSampleCandidates() {
+  sampleCandidates.forEach(c => {
+    if (!candidates.find(x => x.name === c.name)) {
+      candidates.push({ id: Date.now() + Math.random(), ...c });
+    }
+  });
+  renderCandidates();
+  showToast('4 sample candidates loaded');
+}
+
+function resetAll() {
+  requiredSkills = [];
+  candidates = [];
+  screeningResults = [];
+  renderSkillTags();
+  renderCandidates();
+  document.getElementById('jobTitle').value = '';
+  document.getElementById('jobDesc').value = '';
+  document.getElementById('expLevel').value = 'any';
+  document.getElementById('results-section').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('System reset');
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `⚔ &nbsp; ${msg}`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// Auto-load sample on start
+window.addEventListener('load', () => {
+  setTimeout(() => loadSampleJob('ml'), 300);
+  setTimeout(() => addSampleCandidates(), 600);
+});
+</script>
+</body>
+</html>
