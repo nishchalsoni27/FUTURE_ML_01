@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sales & Demand Forecasting — Nishchal Soni</title>
+<style>
+/* ─── OFFLINE FONT STACK ─── */
+:root {
+  --font-display: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  --font-body:    'Courier New', Courier, monospace;
+  --font-head:    Georgia, 'Times New Roman', serif;
+
+  --ink:     #0d0b08;
+  --bark:    #1a1410;
+  --moss:    #1e2e1e;
+  --fern:    #3d5c3a;
+  --sage:    #6b8f6b;
+  --canopy:  #a8c89a;
+  --sunray:  #e8b84b;
+  --amber:   #c9832a;
+  --ember:   #8b3a1a;
+  --cream:   #f2ead8;
+  --fog:     #b8b09a;
+  --mist:    #7a7260;
+  --compass: #d4a843;
+  --red:     #e05252;
+  --blue:    #5ba3c9;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--ink);
+  color:var(--cream);
+  font-family:var(--font-body);
+  overflow-x:hidden;
+  cursor:crosshair;
+}
+
+/* grain */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  opacity:.3;
+}
+
+/* progress */
+#prog{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--ember),var(--sunray),var(--canopy));z-index:10000;transition:width .1s}
+
+/* ── NAV DOTS ── */
+.nav-dots{position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:.8rem;z-index:1000}
+.nd{width:7px;height:7px;border:1px solid var(--mist);transform:rotate(45deg);cursor:pointer;transition:.3s}
+.nd.active,.nd:hover{background:var(--compass);border-color:var(--compass);transform:rotate(45deg) scale(1.5)}
+
+/* ── HERO ── */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;padding:5rem 2rem 8rem;text-align:center}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 80%,rgba(42,58,42,.55) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 20% 10%,rgba(232,184,75,.07) 0%,transparent 60%),linear-gradient(180deg,#0d0b08 0%,#0e120d 100%)}
+.stars{position:absolute;top:0;left:0;right:0;bottom:30%;overflow:hidden}
+.star{position:absolute;border-radius:50%;background:var(--cream);animation:twinkle var(--d,3s) ease-in-out infinite;opacity:0}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.8)}50%{opacity:var(--o,.7);transform:scale(1.2)}}
+
+.compass-rose{position:absolute;top:2.5rem;right:3.5rem;width:72px;height:72px;opacity:.15;animation:spin-slow 60s linear infinite}
+@keyframes spin-slow{to{transform:rotate(360deg)}}
+
+.hero-eyebrow{position:relative;font-size:.72rem;letter-spacing:.4em;color:var(--compass);text-transform:uppercase;margin-bottom:1rem;opacity:0;animation:fadeUp 1s .3s forwards;font-family:var(--font-head)}
+.hero-tag{position:relative;display:inline-block;background:var(--moss);border:1px solid var(--fern);color:var(--canopy);font-size:.68rem;letter-spacing:.3em;padding:.35em 1.2em;margin-bottom:1.8rem;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);opacity:0;animation:fadeUp 1s .5s forwards}
+.hero-title{position:relative;font-family:var(--font-display);font-size:clamp(2rem,5.5vw,5rem);font-weight:900;line-height:1.05;color:var(--cream);text-shadow:0 4px 40px rgba(0,0,0,.9);opacity:0;animation:fadeUp 1.2s .7s forwards;max-width:860px}
+.hero-title em{font-style:italic;color:var(--sunray);display:block}
+.hero-div{margin:2.2rem auto;width:240px;height:1px;background:linear-gradient(90deg,transparent,var(--compass),transparent);position:relative;opacity:0;animation:fadeIn 1s 1.2s forwards}
+.hero-div::before{content:'✦';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--ink);padding:0 .5rem;color:var(--compass);font-size:.75rem}
+.hero-quote{font-family:var(--font-display);font-style:italic;font-size:.95rem;color:var(--fog);max-width:500px;line-height:1.75;opacity:0;animation:fadeUp 1s 1.4s forwards}
+.hero-quote span{color:var(--canopy)}
+
+.forest-btm{position:absolute;bottom:0;left:0;right:0;height:200px;overflow:hidden}
+.forest-btm svg{width:100%;height:100%}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── LAYOUT ── */
+.container{max-width:1080px;margin:0 auto;padding:0 2rem 6rem}
+section{margin-bottom:5rem;scroll-margin-top:2rem}
+
+.sec-label{display:flex;align-items:center;gap:1rem;margin-bottom:2.5rem;opacity:0;transform:translateX(-18px);transition:opacity .8s,transform .8s}
+.sec-label.vis{opacity:1;transform:none}
+.sec-label::before{content:'';display:block;width:36px;height:1px;background:var(--compass)}
+.sec-label span{font-family:var(--font-head);font-size:.68rem;letter-spacing:.35em;color:var(--compass);text-transform:uppercase}
+
+/* ── TASK CARD ── */
+.task-card{position:relative;border:1px solid rgba(168,200,154,.15);background:linear-gradient(135deg,rgba(26,20,16,.9),rgba(42,58,42,.3));padding:2.5rem;overflow:hidden;opacity:0;transform:translateY(28px);transition:opacity .9s,transform .9s}
+.task-card.vis{opacity:1;transform:none}
+.task-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--sunray),var(--amber),var(--ember))}
+.task-card::after{content:'TASK 01';position:absolute;top:1.2rem;right:1.8rem;font-family:var(--font-head);font-size:.62rem;letter-spacing:.3em;color:rgba(168,200,154,.2)}
+.tc-title{font-family:var(--font-display);font-size:1.05rem;color:var(--canopy);margin-bottom:.9rem}
+.tc-body{font-size:.95rem;line-height:1.85;color:var(--cream)}
+.tc-body strong{color:var(--sunray)}
+.meta-row{display:flex;flex-wrap:wrap;gap:1.5rem;margin-top:1.8rem;padding-top:1.8rem;border-top:1px solid rgba(168,200,154,.1)}
+.meta-item label{font-family:var(--font-head);font-size:.58rem;letter-spacing:.3em;color:var(--mist);text-transform:uppercase;display:block;margin-bottom:.25rem}
+.meta-item span{font-size:.88rem;color:var(--fog)}
+.hl{color:var(--sunray)!important}
+
+/* ── FEATURES ── */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.4rem;margin-bottom:4rem}
+.feat-card{position:relative;background:rgba(255,255,255,.02);border:1px solid rgba(168,200,154,.1);padding:2rem 1.6rem;transition:border-color .3s,transform .3s,background .3s;opacity:0;transform:translateY(18px)}
+.feat-card.vis{opacity:1;transform:none}
+.feat-card:hover{border-color:rgba(232,184,75,.35);background:rgba(42,58,42,.2);transform:translateY(-4px)}
+.feat-num{font-family:var(--font-display);font-size:2.8rem;font-weight:900;color:rgba(168,200,154,.07);line-height:1;margin-bottom:.8rem}
+.feat-icon{font-size:1.4rem;display:block;margin-bottom:.7rem}
+.feat-title{font-family:var(--font-head);font-size:.72rem;letter-spacing:.2em;color:var(--canopy);text-transform:uppercase;margin-bottom:.7rem}
+.feat-desc{font-size:.85rem;line-height:1.7;color:var(--fog)}
+
+/* ── ML DEMO ── */
+.demo-wrap{border:1px solid rgba(168,200,154,.2);background:rgba(14,18,13,.7);padding:2rem;opacity:0;transform:translateY(24px);transition:opacity .9s,transform .9s}
+.demo-wrap.vis{opacity:1;transform:none}
+.demo-controls{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.8rem;align-items:flex-end}
+.ctrl-group{display:flex;flex-direction:column;gap:.4rem}
+.ctrl-group label{font-family:var(--font-head);font-size:.6rem;letter-spacing:.3em;color:var(--mist);text-transform:uppercase}
+.ctrl-group select,
+.ctrl-group input[type=range]{background:var(--moss);border:1px solid var(--fern);color:var(--cream);padding:.4em .8em;font-family:var(--font-body);font-size:.82rem;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none}
+.ctrl-group select:focus{border-color:var(--canopy)}
+.ctrl-group input[type=range]{padding:0;width:160px;accent-color:var(--sunray);height:4px;cursor:pointer}
+.range-val{font-size:.78rem;color:var(--canopy);margin-top:.2rem}
+.btn{background:var(--moss);border:1px solid var(--fern);color:var(--canopy);font-family:var(--font-body);font-size:.82rem;padding:.6em 1.4em;cursor:pointer;letter-spacing:.08em;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:background .3s,border-color .3s,color .3s}
+.btn:hover{background:var(--fern);border-color:var(--canopy);color:var(--cream)}
+.btn-run{background:rgba(201,131,42,.2);border-color:var(--amber);color:var(--sunray)}
+.btn-run:hover{background:rgba(201,131,42,.4)}
+
+#ml-canvas{width:100%;height:340px;display:block;border:1px solid rgba(168,200,154,.1);background:#080c08;cursor:default}
+
+.metrics-row{display:flex;flex-wrap:wrap;gap:1.5rem;margin-top:1.5rem}
+.metric-box{flex:1;min-width:140px;background:rgba(42,58,42,.3);border:1px solid rgba(107,143,107,.2);padding:1rem 1.2rem}
+.metric-box label{font-family:var(--font-head);font-size:.58rem;letter-spacing:.3em;color:var(--mist);text-transform:uppercase;display:block;margin-bottom:.4rem}
+.metric-val{font-family:var(--font-display);font-size:1.6rem;font-weight:700;color:var(--sunray)}
+.metric-desc{font-size:.7rem;color:var(--mist);margin-top:.3rem}
+
+.legend{display:flex;flex-wrap:wrap;gap:1.2rem;margin-top:1rem}
+.leg-item{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--fog)}
+.leg-color{width:24px;height:2px;display:inline-block}
+.leg-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* ── PIPELINE ── */
+.pipeline{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:1.5rem 0}
+.pipe-step{flex:1;min-width:120px;padding:1.2rem 1rem;background:rgba(42,58,42,.25);border:1px solid rgba(107,143,107,.15);text-align:center;position:relative;opacity:0;transform:translateY(14px);transition:opacity .6s,transform .6s}
+.pipe-step.vis{opacity:1;transform:none}
+.pipe-step:hover{background:rgba(42,58,42,.45)}
+.pipe-step::after{content:'→';position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--compass);font-size:1rem;z-index:2}
+.pipe-step:last-child::after{display:none}
+.pipe-icon{font-size:1.5rem;display:block;margin-bottom:.5rem}
+.pipe-name{font-family:var(--font-head);font-size:.62rem;letter-spacing:.18em;color:var(--canopy);text-transform:uppercase}
+
+/* ── EXPLAIN SECTION ── */
+.explain-card{border:1px solid rgba(168,200,154,.15);background:rgba(255,255,255,.02);padding:2rem;margin-bottom:1.2rem;cursor:pointer;transition:background .3s,border-color .3s;opacity:0;transform:translateX(-16px);transition:opacity .7s,transform .7s,background .3s,border-color .3s}
+.explain-card.vis{opacity:1;transform:none}
+.explain-card:hover{background:rgba(42,58,42,.2);border-color:rgba(168,200,154,.3)}
+.explain-header{display:flex;justify-content:space-between;align-items:center}
+.explain-num{font-family:var(--font-display);font-size:2rem;font-weight:900;color:rgba(168,200,154,.15);margin-right:1rem;flex-shrink:0}
+.explain-title{font-family:var(--font-head);font-size:.75rem;letter-spacing:.2em;color:var(--canopy);text-transform:uppercase;flex:1}
+.explain-toggle{color:var(--compass);font-size:1.2rem;transition:transform .3s}
+.explain-card.open .explain-toggle{transform:rotate(45deg)}
+.explain-body{max-height:0;overflow:hidden;transition:max-height .5s ease}
+.explain-card.open .explain-body{max-height:600px}
+.explain-text{padding-top:1.2rem;font-size:.88rem;line-height:1.85;color:var(--fog)}
+.explain-text strong{color:var(--sunray)}
+.explain-text ul{padding-left:1.4rem;margin-top:.6rem}
+.explain-text li{margin-bottom:.5rem}
+.explain-text .code-snip{background:rgba(0,0,0,.5);border:1px solid var(--moss);padding:.15em .5em;font-family:var(--font-body);font-size:.8rem;color:var(--canopy);white-space:nowrap}
+
+/* ── TOOLS BADGES ── */
+.tools-row{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1rem}
+.tool-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(42,58,42,.4);border:1px solid rgba(107,143,107,.3);color:var(--canopy);font-size:.78rem;padding:.45em 1em;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:background .3s,border-color .3s;opacity:0;transform:translateX(-8px);transition:opacity .5s,transform .5s,background .3s}
+.tool-badge.vis{opacity:1;transform:none}
+.tool-badge:hover{background:rgba(61,92,58,.6);border-color:var(--canopy)}
+
+/* ── DELIVERABLE ── */
+.deliv-wrap{position:relative;background:linear-gradient(135deg,rgba(61,92,58,.15),rgba(42,58,42,.25));border:1px solid rgba(168,200,154,.2);padding:3rem;text-align:center;overflow:hidden;opacity:0;transform:scale(.97);transition:opacity .9s,transform .9s}
+.deliv-wrap.vis{opacity:1;transform:scale(1)}
+.deliv-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50%,rgba(232,184,75,.05),transparent 70%);pointer-events:none}
+.deliv-icon{font-size:2.4rem;display:block;margin-bottom:.8rem;animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.deliv-title{font-family:var(--font-head);font-size:.68rem;letter-spacing:.4em;color:var(--compass);text-transform:uppercase;margin-bottom:.9rem}
+.deliv-text{font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--cream);line-height:1.5;max-width:580px;margin:0 auto 2rem}
+.deliv-text em{color:var(--sunray);font-style:italic}
+.deliv-grid{display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap}
+.deliv-item{text-align:center;padding:.9rem 1.4rem;border:1px solid rgba(168,200,154,.12)}
+.deliv-item div:first-child{font-size:1.8rem}
+.deliv-item div:last-child{font-family:var(--font-head);font-size:.58rem;letter-spacing:.22em;color:var(--mist);margin-top:.4rem;text-transform:uppercase}
+
+/* ── FOOTER ── */
+footer{position:relative;border-top:1px solid rgba(168,200,154,.1);padding:3rem 2rem;text-align:center}
+footer::before{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(42,58,42,.08),transparent)}
+.foot-quote{font-family:var(--font-display);font-style:italic;font-size:.95rem;color:var(--mist);margin-bottom:1.2rem;line-height:1.8}
+.foot-author{font-family:var(--font-head);font-size:.62rem;letter-spacing:.4em;color:var(--compass);text-transform:uppercase}
+
+/* ── SKILLS BAR ── */
+.skills-list{display:flex;flex-direction:column;gap:.7rem;margin-top:1rem}
+.skill-row{display:flex;align-items:center;gap:1rem;opacity:0;transform:translateX(-16px);transition:opacity .6s,transform .6s}
+.skill-row.vis{opacity:1;transform:none}
+.sk-bullet{width:6px;height:6px;border:1px solid var(--compass);transform:rotate(45deg);flex-shrink:0}
+.sk-name{font-size:.85rem;color:var(--fog);width:180px;flex-shrink:0}
+.sk-track{flex:1;height:2px;background:rgba(255,255,255,.05);overflow:hidden}
+.sk-fill{height:100%;background:linear-gradient(90deg,var(--fern),var(--canopy));transform:scaleX(0);transform-origin:left;transition:transform 1.2s cubic-bezier(.4,0,.2,1)}
+.skill-row.vis .sk-fill{transform:scaleX(1)}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+
+<nav class="nav-dots">
+  <div class="nd active" onclick="goTo('hero')" title="Home"></div>
+  <div class="nd" onclick="goTo('overview')" title="Overview"></div>
+  <div class="nd" onclick="goTo('pipeline')" title="Pipeline"></div>
+  <div class="nd" onclick="goTo('ml-demo')" title="Live Demo"></div>
+  <div class="nd" onclick="goTo('explain')" title="How to Explain"></div>
+  <div class="nd" onclick="goTo('deliverable')" title="Deliverable"></div>
+</nav>
+
+<!-- ════════ HERO ════════ -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="stars" id="stars"></div>
+
+  <svg class="compass-rose" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="48" stroke="#e8b84b" stroke-width="1"/>
+    <circle cx="50" cy="50" r="38" stroke="#e8b84b" stroke-width=".5" stroke-dasharray="3 3"/>
+    <polygon points="50,4 54,46 50,50 46,46" fill="#e8b84b"/>
+    <polygon points="50,96 54,54 50,50 46,54" fill="#e8b84b" opacity=".5"/>
+    <polygon points="4,50 46,46 50,50 46,54" fill="#e8b84b" opacity=".5"/>
+    <polygon points="96,50 54,46 50,50 54,54" fill="#e8b84b" opacity=".5"/>
+    <text x="50" y="19" text-anchor="middle" fill="#e8b84b" font-size="9" font-family="serif">N</text>
+    <text x="50" y="91" text-anchor="middle" fill="#e8b84b" font-size="7" font-family="serif">S</text>
+    <text x="88" y="54" text-anchor="middle" fill="#e8b84b" font-size="7" font-family="serif">E</text>
+    <text x="12" y="54" text-anchor="middle" fill="#e8b84b" font-size="7" font-family="serif">W</text>
+    <circle cx="50" cy="50" r="4" fill="#e8b84b"/>
+  </svg>
+
+  <p class="hero-eyebrow">Nishchal Soni · Machine Learning Project</p>
+  <div class="hero-tag">TASK 01 · ML FORECASTING</div>
+  <h1 class="hero-title">Sales &amp; Demand<br><em>Forecasting</em> for Businesses</h1>
+  <div class="hero-div"></div>
+  <p class="hero-quote">"The freedom and simple beauty is <span>too good to pass up.</span>"<br>— Into the Wild · applied to <span>data-driven discovery</span></p>
+
+  <div class="forest-btm">
+    <svg viewBox="0 0 1440 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,200 L0,150 L30,95 L60,150 L80,110 L110,55 L140,110 L160,75 L190,45 L220,75 L250,110 L280,80 L310,55 L340,80 L360,120 L400,90 L430,65 L460,100 L490,75 L520,45 L550,75 L580,100 L610,65 L640,95 L670,55 L700,35 L730,55 L760,95 L790,65 L820,100 L850,75 L880,45 L910,75 L940,100 L970,65 L1000,95 L1030,55 L1060,80 L1090,120 L1120,95 L1150,65 L1180,100 L1210,75 L1240,45 L1270,75 L1300,110 L1330,80 L1360,55 L1390,80 L1420,130 L1440,150 L1440,200Z" fill="#1a1410" opacity=".9"/>
+      <path d="M0,200 L0,170 L50,125 L70,145 L100,105 L120,125 L150,85 L170,105 L200,75 L230,95 L260,135 L290,105 L320,75 L350,95 L380,135 L420,105 L450,75 L480,95 L510,125 L540,95 L570,65 L600,95 L630,125 L660,95 L690,65 L720,95 L750,125 L780,95 L810,65 L840,95 L870,125 L900,95 L930,65 L960,95 L990,125 L1020,95 L1050,65 L1080,95 L1110,125 L1140,95 L1170,65 L1200,95 L1230,125 L1260,95 L1290,75 L1330,105 L1370,145 L1440,170 L1440,200Z" fill="#0e120d"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ════════ CONTAINER ════════ -->
+<div class="container">
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="sec-label"><span>The Mission</span></div>
+  <div class="task-card">
+    <p class="tc-title">Primary Objective</p>
+    <p class="tc-body">
+      Build a <strong>Machine Learning model</strong> to forecast future sales or demand using historical business data — applying time-series analysis and regression to predict what's coming before it arrives.
+    </p>
+    <div class="meta-row">
+      <div class="meta-item"><label>Domain</label><span>Business Analytics · ML</span></div>
+      <div class="meta-item"><label>Core Method</label><span>Time-Series + Regression</span></div>
+      <div class="meta-item"><label>Created By</label><span class="hl">Nishchal Soni</span></div>
+      <div class="meta-item"><label>Level</label><span>Intermediate → Advanced</span></div>
+    </div>
+  </div>
+
+  <!-- Key Features -->
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-num">01</div>
+      <span class="feat-icon">🌿</span>
+      <p class="feat-title">Data Cleaning &amp; Feature Engg.</p>
+      <p class="feat-desc">Handle missing values, outliers, and engineer lag features, rolling means, seasonal dummies, and date components.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">02</div>
+      <span class="feat-icon">🔭</span>
+      <p class="feat-title">Forecasting Models</p>
+      <p class="feat-desc">ARIMA, SARIMA, Exponential Smoothing, XGBoost Regression, or Facebook Prophet — choose the right weapon for the terrain.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">03</div>
+      <span class="feat-icon">⚖️</span>
+      <p class="feat-title">Model Evaluation</p>
+      <p class="feat-desc">Measure accuracy with MAE, RMSE, and MAPE. Compare multiple models and select the champion through cross-validation.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">04</div>
+      <span class="feat-icon">🗺️</span>
+      <p class="feat-title">Business Visual Output</p>
+      <p class="feat-desc">Transform raw predictions into clear charts — confidence intervals, trend lines, and actionable dashboards.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <div class="sec-label"><span>ML Pipeline</span></div>
+  <div class="pipeline" id="pipe">
+    <div class="pipe-step"><span class="pipe-icon">📦</span><span class="pipe-name">Raw Data</span></div>
+    <div class="pipe-step"><span class="pipe-icon">🧹</span><span class="pipe-name">Clean &amp; Preprocess</span></div>
+    <div class="pipe-step"><span class="pipe-icon">⚙️</span><span class="pipe-name">Feature Engineering</span></div>
+    <div class="pipe-step"><span class="pipe-icon">🤖</span><span class="pipe-name">Train Model</span></div>
+    <div class="pipe-step"><span class="pipe-icon">📊</span><span class="pipe-name">Evaluate &amp; Tune</span></div>
+    <div class="pipe-step"><span class="pipe-icon">🏕️</span><span class="pipe-name">Forecast &amp; Deploy</span></div>
+  </div>
+  <!-- Skills -->
+  <div class="sec-label" style="margin-top:3rem"><span>Skills Gained</span></div>
+  <div class="skills-list">
+    <div class="skill-row"><div class="sk-bullet"></div><span class="sk-name">Time-Series Analysis</span><div class="sk-track"><div class="sk-fill" style="width:92%"></div></div></div>
+    <div class="skill-row"><div class="sk-bullet"></div><span class="sk-name">Demand Forecasting</span><div class="sk-track"><div class="sk-fill" style="width:88%"></div></div></div>
+    <div class="skill-row"><div class="sk-bullet"></div><span class="sk-name">Feature Engineering</span><div class="sk-track"><div class="sk-fill" style="width:82%"></div></div></div>
+    <div class="skill-row"><div class="sk-bullet"></div><span class="sk-name">Business Interpretation</span><div class="sk-track"><div class="sk-fill" style="width:85%"></div></div></div>
+    <div class="skill-row"><div class="sk-bullet"></div><span class="sk-name">Data Visualization</span><div class="sk-track"><div class="sk-fill" style="width:90%"></div></div></div>
+  </div>
+  <!-- Tools -->
+  <div class="sec-label" style="margin-top:3rem"><span>Tools &amp; Libraries</span></div>
+  <div class="tools-row" id="tools-row">
+    <div class="tool-badge">🐍 Python</div>
+    <div class="tool-badge">🐼 Pandas</div>
+    <div class="tool-badge">🔢 NumPy</div>
+    <div class="tool-badge">📉 Scikit-learn</div>
+    <div class="tool-badge">⏱ statsmodels</div>
+    <div class="tool-badge">🚀 Prophet</div>
+    <div class="tool-badge">📊 Matplotlib</div>
+    <div class="tool-badge">🌳 XGBoost</div>
+    <div class="tool-badge">📈 Power BI</div>
+    <div class="tool-badge">🖥 Tableau</div>
+  </div>
+</section>
+
+<!-- LIVE ML DEMO -->
+<section id="ml-demo">
+  <div class="sec-label"><span>Live ML Demo — Forecasting Engine</span></div>
+  <div class="demo-wrap">
+    <div class="demo-controls">
+      <div class="ctrl-group">
+        <label>Dataset Pattern</label>
+        <select id="dataPattern">
+          <option value="seasonal">Seasonal Business (Retail)</option>
+          <option value="trend">Upward Trend (Startup)</option>
+          <option value="volatile">Volatile Demand (FMCG)</option>
+          <option value="flat">Stable Market (B2B SaaS)</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Forecast Method</label>
+        <select id="forecastMethod">
+          <option value="sma">Moving Average (SMA)</option>
+          <option value="exp">Exponential Smoothing (ETS)</option>
+          <option value="linreg">Linear Regression</option>
+          <option value="all">Compare All Methods</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Forecast Months: <span id="fwLabel">6</span></label>
+        <input type="range" id="forecastWindow" min="3" max="12" value="6"/>
+      </div>
+      <div class="ctrl-group">
+        <label>Noise Level: <span id="noiseLabel">Med</span></label>
+        <input type="range" id="noiseLevel" min="1" max="3" value="2"/>
+      </div>
+      <button class="btn btn-run" onclick="runForecast()">▶ Run Forecast</button>
+      <button class="btn" onclick="generateNewData()">↻ New Data</button>
+    </div>
+
+    <canvas id="ml-canvas" width="1040" height="340"></canvas>
+
+    <div class="legend" id="legend">
+      <span class="leg-item"><span class="leg-color" style="background:#a8c89a"></span> Historical Sales</span>
+      <span class="leg-item"><span class="leg-color" style="background:#e8b84b;border-top:2px dashed #e8b84b;background:none"></span> Forecast</span>
+      <span class="leg-item"><span class="leg-color" style="background:rgba(232,184,75,.15);height:10px;display:inline-block;width:24px;border:1px solid rgba(232,184,75,.3)"></span> Confidence Band</span>
+    </div>
+
+    <div class="metrics-row" id="metrics-row">
+      <div class="metric-box"><label>MAE</label><div class="metric-val" id="m-mae">—</div><div class="metric-desc">Mean Absolute Error</div></div>
+      <div class="metric-box"><label>RMSE</label><div class="metric-val" id="m-rmse">—</div><div class="metric-desc">Root Mean Sq. Error</div></div>
+      <div class="metric-box"><label>MAPE</label><div class="metric-val" id="m-mape">—</div><div class="metric-desc">Mean Abs. % Error</div></div>
+      <div class="metric-box"><label>R² Score</label><div class="metric-val" id="m-r2">—</div><div class="metric-desc">Model Fit (1.0 = perfect)</div></div>
+      <div class="metric-box"><label>Next Month</label><div class="metric-val" id="m-next" style="color:var(--canopy)">—</div><div class="metric-desc">Predicted Sales Units</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO EXPLAIN -->
+<section id="explain">
+  <div class="sec-label"><span>How to Explain This Project</span></div>
+  <p style="color:var(--fog);font-size:.88rem;line-height:1.85;margin-bottom:2rem">
+    Whether it's a viva, interview, or presentation — use these structured talking points to walk anyone through your project confidently.
+  </p>
+
+  <div class="explain-card" onclick="toggleExplain(this)">
+    <div class="explain-header">
+      <span class="explain-num">01</span>
+      <span class="explain-title">Opening Introduction (30 seconds)</span>
+      <span class="explain-toggle">+</span>
+    </div>
+    <div class="explain-body">
+      <div class="explain-text">
+        <strong>Say this:</strong><br><br>
+        "This project is about building a Machine Learning model that forecasts future sales or demand for a business, based on its historical data. The core problem is — businesses often don't know how much product to stock or how much revenue to expect next month. My model solves this by learning patterns from past data and projecting into the future."
+        <br><br>
+        <strong>Key words to use:</strong> time-series, historical patterns, regression, prediction horizon, business value.
+      </div>
+    </div>
+  </div>
+
+  <div class="explain-card" onclick="toggleExplain(this)">
+    <div class="explain-header">
+      <span class="explain-num">02</span>
+      <span class="explain-title">Data &amp; Preprocessing (Technical)</span>
+      <span class="explain-toggle">+</span>
+    </div>
+    <div class="explain-body">
+      <div class="explain-text">
+        <strong>Explain like this:</strong>
+        <ul>
+          <li><strong>Dataset:</strong> "I used a historical sales dataset with monthly/weekly records including date, units sold, price, and category."</li>
+          <li><strong>Cleaning:</strong> "I handled missing values using forward-fill for time-series continuity, removed outliers using IQR, and converted dates to proper datetime format."</li>
+          <li><strong>Feature Engineering:</strong> "I extracted lag features (sales from previous 1, 3, 6 months), rolling averages, month/quarter indicators for seasonality, and a linear time index for trend capture."</li>
+        </ul>
+        <br>
+        Key code concepts: <span class="code-snip">df['lag_1'] = df['sales'].shift(1)</span>, <span class="code-snip">df.rolling(3).mean()</span>, <span class="code-snip">pd.to_datetime()</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="explain-card" onclick="toggleExplain(this)">
+    <div class="explain-header">
+      <span class="explain-num">03</span>
+      <span class="explain-title">Model Selection &amp; Why</span>
+      <span class="explain-toggle">+</span>
+    </div>
+    <div class="explain-body">
+      <div class="explain-text">
+        <strong>Walk through your model choice:</strong>
+        <ul>
+          <li><strong>ARIMA/SARIMA:</strong> "For stationary data with clear trend. I used ADF test to check stationarity and ACF/PACF plots to set p, d, q parameters."</li>
+          <li><strong>Exponential Smoothing (ETS):</strong> "Assigns exponentially decreasing weights to past observations — recent data matters more. Great for smooth, stable sales."</li>
+          <li><strong>XGBoost Regression:</strong> "Treats forecasting as a supervised regression problem using engineered lag and date features. Very powerful for non-linear patterns."</li>
+          <li><strong>Prophet:</strong> "Facebook's open-source tool, handles seasonality and holidays automatically. Best for business-friendly outputs."</li>
+        </ul>
+        <br>
+        <strong>Key line to say:</strong> "I compared all models using train-test split where the last 20% of data was held out for evaluation, and selected the model with lowest MAPE."
+      </div>
+    </div>
+  </div>
+
+  <div class="explain-card" onclick="toggleExplain(this)">
+    <div class="explain-header">
+      <span class="explain-num">04</span>
+      <span class="explain-title">Evaluation Metrics — Explained Simply</span>
+      <span class="explain-toggle">+</span>
+    </div>
+    <div class="explain-body">
+      <div class="explain-text">
+        <ul>
+          <li><strong>MAE (Mean Absolute Error):</strong> "On average, my forecast was off by X units. Easy to understand for business people."</li>
+          <li><strong>RMSE (Root Mean Squared Error):</strong> "Penalizes large errors more — important when big misses are costly (e.g. over-stocking)."</li>
+          <li><strong>MAPE (Mean Abs. % Error):</strong> "My model's predictions were within X% of the actual values. Scale-independent — works across different products."</li>
+          <li><strong>R² Score:</strong> "Tells how much variance in sales my model explains. 0.85 means 85% of the pattern is captured."</li>
+        </ul>
+        <br>
+        <strong>Golden line:</strong> "A MAPE under 10% is considered excellent for demand forecasting in practice."
+      </div>
+    </div>
+  </div>
+
+  <div class="explain-card" onclick="toggleExplain(this)">
+    <div class="explain-header">
+      <span class="explain-num">05</span>
+      <span class="explain-title">Business Value &amp; Real-World Impact</span>
+      <span class="explain-toggle">+</span>
+    </div>
+    <div class="explain-body">
+      <div class="explain-text">
+        <strong>Always end with business impact — this impresses everyone:</strong>
+        <ul>
+          <li>"Accurate demand forecasting reduces inventory costs by 20–30% (a real industry benchmark)."</li>
+          <li>"Prevents stockouts — which lead to lost sales — and overstocking — which ties up capital."</li>
+          <li>"Supply chain teams can use forecasts to plan procurement 6–12 months ahead."</li>
+          <li>"Marketing can align campaigns with predicted demand peaks."</li>
+          <li>"Finance can improve budget accuracy and cash flow projections."</li>
+        </ul>
+        <br>
+        <strong>Close with:</strong> "This model turns historical noise into a navigable signal — and that's the whole point of ML in business."
+      </div>
+    </div>
+  </div>
+
+  <div class="explain-card" onclick="toggleExplain(this)">
+    <div class="explain-header">
+      <span class="explain-num">06</span>
+      <span class="explain-title">Expected Interview / Viva Questions</span>
+      <span class="explain-toggle">+</span>
+    </div>
+    <div class="explain-body">
+      <div class="explain-text">
+        <ul>
+          <li><strong>Q: Why time-series instead of normal regression?</strong><br>A: "Normal regression assumes independent observations. Sales data has temporal dependency — past values influence future ones. Time-series models respect that structure."</li>
+          <li><strong>Q: How did you handle seasonality?</strong><br>A: "Used seasonal decomposition (STL), SARIMA's seasonal component, or engineered month/quarter dummies for ML models."</li>
+          <li><strong>Q: What's the difference between ARIMA and Prophet?</strong><br>A: "ARIMA is statistical, needs manual parameter tuning and stationarity. Prophet is automated, handles multiple seasonalities and holidays, more business-friendly."</li>
+          <li><strong>Q: How do you validate a time-series model?</strong><br>A: "Walk-forward (rolling) cross-validation — never shuffle split, as that leaks future data into training."</li>
+          <li><strong>Q: What would you improve?</strong><br>A: "Add external regressors like weather, holidays, marketing spend. Use LSTM neural networks for long-range patterns. Implement real-time retraining pipeline."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DELIVERABLE -->
+<section id="deliverable">
+  <div class="sec-label"><span>Final Deliverable</span></div>
+  <div class="deliv-wrap">
+    <span class="deliv-icon">🏕️</span>
+    <p class="deliv-title">What You Submit</p>
+    <p class="deliv-text">A sales forecast model with <em>clear visuals</em> and business-ready insights — the full map of where demand is heading.</p>
+    <div class="deliv-grid">
+      <div class="deliv-item"><div>📓</div><div>Jupyter Notebook</div></div>
+      <div class="deliv-item"><div>📉</div><div>Trained Model</div></div>
+      <div class="deliv-item"><div>📊</div><div>Visual Report</div></div>
+      <div class="deliv-item"><div>💡</div><div>Business Insights</div></div>
+      <div class="deliv-item"><div>📋</div><div>Evaluation Summary</div></div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<footer>
+  <p class="foot-quote">"Into the wilderness of data we go,<br>armed only with curiosity and code."</p>
+  <p class="foot-author">Built by Nishchal Soni &nbsp;·&nbsp; Task 01 &nbsp;·&nbsp; ML Sales Forecasting &nbsp;·&nbsp; Offline Ready</p>
+</footer>
+
+<!-- ════════ JAVASCRIPT ════════ -->
+<script>
+/* ── STARS ── */
+const starsEl=document.getElementById('stars');
+for(let i=0;i<130;i++){
+  const s=document.createElement('div');s.className='star';
+  const sz=Math.random()*2.2+.4;
+  s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*4+2).toFixed(1)}s;--o:${(Math.random()*.6+.2).toFixed(2)};animation-delay:${(Math.random()*5).toFixed(1)}s`;
+  starsEl.appendChild(s);
+}
+
+/* ── SCROLL PROGRESS + NAV DOTS ── */
+const prog=document.getElementById('prog');
+window.addEventListener('scroll',()=>{
+  const tot=document.body.scrollHeight-innerHeight;
+  prog.style.width=(scrollY/tot*100)+'%';
+  const secs=['hero','overview','pipeline','ml-demo','explain','deliverable'];
+  const dots=document.querySelectorAll('.nd');
+  secs.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    const t=el.getBoundingClientRect().top;
+    if(t<=innerHeight*.5&&t>-el.offsetHeight*.5){dots.forEach(d=>d.classList.remove('active'));dots[i]?.classList.add('active');}
+  });
+});
+
+/* ── INTERSECTION OBSERVER ── */
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){
+      const d=+(e.target.dataset.delay||0);
+      setTimeout(()=>e.target.classList.add('vis'),d*120);
+    }
+  });
+},{threshold:.1});
+document.querySelectorAll('.sec-label,.task-card,.feat-card,.pipe-step,.demo-wrap,.explain-card,.deliv-wrap,.tool-badge,.skill-row').forEach((el,i)=>{
+  el.dataset.delay=i%8;obs.observe(el);
+});
+
+/* ── NAV ── */
+function goTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
+
+/* ── EXPLAIN ACCORDION ── */
+function toggleExplain(card){card.classList.toggle('open')}
+
+/* ── NOISE LABEL ── */
+document.getElementById('forecastWindow').addEventListener('input',function(){document.getElementById('fwLabel').textContent=this.value});
+document.getElementById('noiseLevel').addEventListener('input',function(){document.getElementById('noiseLabel').textContent=['Low','Med','High'][+this.value-1]});
+
+/* ═══════════════════════════════════
+   ML FORECASTING ENGINE
+═══════════════════════════════════ */
+let histData=[], allLabels=[];
+
+function generateData(){
+  const pattern=document.getElementById('dataPattern').value;
+  const noise=[40,90,160][+document.getElementById('noiseLevel').value-1];
+  const n=36; // 36 months of history
+  const data=[];
+  for(let i=0;i<n;i++){
+    let v=0;
+    const t=i/n;
+    if(pattern==='seasonal') v=800+300*Math.sin(2*Math.PI*i/12)+150*t*n+noise*(Math.random()-.5)*2;
+    else if(pattern==='trend') v=400+14*i+noise*(Math.random()-.5)*2;
+    else if(pattern==='volatile') v=700+noise*2.5*(Math.random()-.5)*2+200*Math.sin(2*Math.PI*i/6);
+    else v=900+noise*0.6*(Math.random()-.5)*2+20*Math.sin(2*Math.PI*i/12);
+    data.push(Math.max(100,Math.round(v)));
+  }
+  histData=data;
+  const start=new Date(2022,0,1);
+  allLabels=[];
+  for(let i=0;i<n+12;i++){
+    const d=new Date(start);d.setMonth(d.getMonth()+i);
+    allLabels.push(d.toLocaleString('default',{month:'short',year:'2-digit'}));
+  }
+}
+
+function generateNewData(){generateData();drawCanvas(histData,[],0,[]);}
+
+/* ── FORECASTING ALGORITHMS ── */
+function smaForecast(data,steps,w=6){
+  const fc=[],lo=[],hi=[];
+  let cur=[...data];
+  const std=stddev(data.slice(-12));
+  for(let i=0;i<steps;i++){
+    const window=cur.slice(-w);
+    const pred=window.reduce((a,b)=>a+b,0)/w;
+    fc.push(Math.round(pred));
+    const conf=std*(1+i*.08);
+    lo.push(Math.round(pred-1.645*conf));
+    hi.push(Math.round(pred+1.645*conf));
+    cur.push(pred);
+  }
+  return{fc,lo,hi};
+}
+
+function expSmoothing(data,steps,alpha=0.3){
+  const fc=[],lo=[],hi=[];
+  let s=data[0];
+  for(const d of data)s=alpha*d+(1-alpha)*s;
+  const std=stddev(data.slice(-12));
+  let cur=s;
+  for(let i=0;i<steps;i++){
+    fc.push(Math.round(cur));
+    const conf=std*(1+i*.1);
+    lo.push(Math.round(cur-1.645*conf));
+    hi.push(Math.round(cur+1.645*conf));
+    cur=alpha*cur+(1-alpha)*cur; // project flat for simplicity
+  }
+  return{fc,lo,hi};
+}
+
+function linRegForecast(data,steps){
+  const n=data.length,xs=[],ys=[];
+  for(let i=0;i<n;i++){xs.push(i);ys.push(data[i]);}
+  const xm=xs.reduce((a,b)=>a+b,0)/n,ym=ys.reduce((a,b)=>a+b,0)/n;
+  let num=0,den=0;
+  for(let i=0;i<n;i++){num+=(xs[i]-xm)*(ys[i]-ym);den+=(xs[i]-xm)**2;}
+  const slope=num/den,intercept=ym-slope*xm;
+  const fc=[],lo=[],hi=[];
+  const resid=ys.map((y,i)=>y-(slope*i+intercept));
+  const se=stddev(resid);
+  for(let i=0;i<steps;i++){
+    const x=n+i,pred=slope*x+intercept;
+    fc.push(Math.round(pred));
+    const conf=se*(1+i*.12);
+    lo.push(Math.round(pred-1.96*conf));
+    hi.push(Math.round(pred+1.96*conf));
+  }
+  return{fc,lo,hi,slope};
+}
+
+function stddev(arr){
+  const m=arr.reduce((a,b)=>a+b,0)/arr.length;
+  return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length);
+}
+
+function calcMetrics(actual,predicted){
+  const n=Math.min(actual.length,predicted.length);
+  let mae=0,mse=0,mape=0,ssRes=0,ssTot=0;
+  const mean=actual.slice(0,n).reduce((a,b)=>a+b,0)/n;
+  for(let i=0;i<n;i++){
+    const e=actual[i]-predicted[i];
+    mae+=Math.abs(e);mse+=e*e;mape+=Math.abs(e/actual[i]);
+    ssRes+=e*e;ssTot+=(actual[i]-mean)**2;
+  }
+  return{
+    mae:(mae/n).toFixed(1),
+    rmse:Math.sqrt(mse/n).toFixed(1),
+    mape:((mape/n)*100).toFixed(1),
+    r2:(1-ssRes/ssTot).toFixed(3)
+  };
+}
+
+/* ── CANVAS DRAWING ── */
+function drawCanvas(hist,forecast,splitIdx,bands){
+  const canvas=document.getElementById('ml-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const pad={top:30,right:30,bottom:45,left:60};
+  const fw=W-pad.left-pad.right,fh=H-pad.top-pad.bottom;
+  ctx.clearRect(0,0,W,H);
+
+  const all=[...hist,...forecast];
+  const allBand=bands.length?[...hist,...bands.hi,...bands.lo]:all;
+  const mn=Math.min(...allBand)*0.88,mx=Math.max(...allBand)*1.08;
+  const total=hist.length+forecast.length;
+
+  function px(i){return pad.left+fw*i/(total-1||1)}
+  function py(v){return pad.top+fh*(1-(v-mn)/(mx-mn))}
+
+  /* Background grid */
+  ctx.strokeStyle='rgba(168,200,154,0.06)';ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const y=pad.top+fh*i/5;
+    ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(pad.left+fw,y);ctx.stroke();
+    ctx.fillStyle='rgba(122,114,96,0.7)';ctx.font='10px Courier New';ctx.textAlign='right';
+    ctx.fillText(Math.round(mn+(mx-mn)*(1-i/5)),pad.left-5,y+4);
+  }
+  for(let i=0;i<total;i+=3){
+    const x=px(i);
+    ctx.beginPath();ctx.moveTo(x,pad.top);ctx.lineTo(x,pad.top+fh);ctx.stroke();
+  }
+
+  /* Forecast zone shading */
+  if(forecast.length){
+    const sx=px(hist.length-1);
+    ctx.fillStyle='rgba(42,58,42,0.25)';
+    ctx.fillRect(sx,pad.top,W-pad.right-sx,fh);
+    ctx.strokeStyle='rgba(212,168,67,0.3)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(sx,pad.top);ctx.lineTo(sx,pad.top+fh);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(212,168,67,0.5)';ctx.font='10px Courier New';ctx.textAlign='left';
+    ctx.fillText('FORECAST →',sx+6,pad.top+14);
+  }
+
+  /* Confidence band */
+  if(bands.lo&&bands.lo.length){
+    ctx.beginPath();
+    bands.hi.forEach((v,i)=>i===0?ctx.moveTo(px(hist.length+i),py(v)):ctx.lineTo(px(hist.length+i),py(v)));
+    [...bands.lo].reverse().forEach((v,i,a)=>ctx.lineTo(px(hist.length+a.length-1-i),py(v)));
+    ctx.closePath();ctx.fillStyle='rgba(232,184,75,0.12)';ctx.fill();
+
+    ctx.beginPath();
+    bands.lo.forEach((v,i)=>i===0?ctx.moveTo(px(hist.length+i),py(v)):ctx.lineTo(px(hist.length+i),py(v)));
+    ctx.strokeStyle='rgba(232,184,75,0.25)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+
+    ctx.beginPath();
+    bands.hi.forEach((v,i)=>i===0?ctx.moveTo(px(hist.length+i),py(v)):ctx.lineTo(px(hist.length+i),py(v)));
+    ctx.strokeStyle='rgba(232,184,75,0.25)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+  }
+
+  /* Historical line */
+  ctx.beginPath();
+  hist.forEach((v,i)=>i===0?ctx.moveTo(px(i),py(v)):ctx.lineTo(px(i),py(v)));
+  ctx.strokeStyle='#a8c89a';ctx.lineWidth=2.2;ctx.stroke();
+
+  /* Historical dots */
+  hist.forEach((v,i)=>{
+    if(i%3===0){ctx.beginPath();ctx.arc(px(i),py(v),2.5,0,Math.PI*2);ctx.fillStyle='#a8c89a';ctx.fill();}
+  });
+
+  /* Forecast lines */
+  if(forecast.length){
+    /* Connect last hist point */
+    const fcFull=[hist[hist.length-1],...forecast];
+    ctx.beginPath();
+    fcFull.forEach((v,i)=>i===0?ctx.moveTo(px(hist.length-1+i),py(v)):ctx.lineTo(px(hist.length-1+i),py(v)));
+    ctx.strokeStyle='#e8b84b';ctx.lineWidth=2.2;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+
+    /* Forecast dots */
+    forecast.forEach((v,i)=>{
+      ctx.beginPath();ctx.arc(px(hist.length+i),py(v),3.5,0,Math.PI*2);
+      ctx.fillStyle='#e8b84b';ctx.fill();
+      ctx.strokeStyle='#0d0b08';ctx.lineWidth=1;ctx.stroke();
+    });
+  }
+
+  /* X axis labels */
+  ctx.fillStyle='rgba(122,114,96,0.8)';ctx.font='9px Courier New';ctx.textAlign='center';
+  for(let i=0;i<total;i+=3){
+    if(allLabels[i])ctx.fillText(allLabels[i],px(i),pad.top+fh+16);
+  }
+
+  /* Y axis title */
+  ctx.save();ctx.translate(14,H/2);ctx.rotate(-Math.PI/2);
+  ctx.fillStyle='rgba(107,143,107,0.8)';ctx.font='10px Courier New';ctx.textAlign='center';
+  ctx.fillText('SALES UNITS',0,0);ctx.restore();
+}
+
+/* ── RUN FORECAST ── */
+function runForecast(){
+  if(!histData.length)generateData();
+  const method=document.getElementById('forecastMethod').value;
+  const fw=+document.getElementById('forecastWindow').value;
+
+  let result, r2=null;
+  if(method==='sma'||method==='all') result=smaForecast(histData,fw);
+  if(method==='exp') result=expSmoothing(histData,fw);
+  if(method==='linreg'||method==='all') result=linRegForecast(histData,fw);
+
+  if(method==='all'){
+    const r1=smaForecast(histData,fw);
+    const r2r=expSmoothing(histData,fw);
+    const r3=linRegForecast(histData,fw);
+    // draw all three on canvas
+    drawCanvas(histData,r1.fc,histData.length,{lo:r1.lo,hi:r1.hi});
+    // overlay exp & linreg
+    const canvas=document.getElementById('ml-canvas');
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width,H=canvas.height;
+    const pad={top:30,right:30,bottom:45,left:60};
+    const fw2=W-pad.left-pad.right,fh2=H-pad.top-pad.bottom;
+    const all=[...histData,...r1.fc,...r2r.fc,...r3.fc,...r1.hi,...r1.lo];
+    const mn=Math.min(...all)*0.88,mx=Math.max(...all)*1.08;
+    const total=histData.length+fw;
+    const px=i=>pad.left+fw2*i/(total-1);
+    const py=v=>pad.top+fh2*(1-(v-mn)/(mx-mn));
+    [[r2r.fc,'#5ba3c9'],[r3.fc,'#e05252']].forEach(([fc,col])=>{
+      const fcFull=[histData[histData.length-1],...fc];
+      ctx.beginPath();
+      fcFull.forEach((v,i)=>i===0?ctx.moveTo(px(histData.length-1+i),py(v)):ctx.lineTo(px(histData.length-1+i),py(v)));
+      ctx.strokeStyle=col;ctx.lineWidth=2;ctx.setLineDash([5,3]);ctx.stroke();ctx.setLineDash([]);
+    });
+    // legend
+    document.getElementById('legend').innerHTML=`
+      <span class="leg-item"><span class="leg-color" style="background:#a8c89a"></span> Historical</span>
+      <span class="leg-item"><span class="leg-color" style="background:#e8b84b;border-top:2px dashed #e8b84b;background:none"></span> SMA</span>
+      <span class="leg-item"><span class="leg-color" style="background:#5ba3c9;border-top:2px dashed #5ba3c9;background:none"></span> ETS</span>
+      <span class="leg-item"><span class="leg-color" style="background:#e05252;border-top:2px dashed #e05252;background:none"></span> Linear Reg</span>
+    `;
+    result=r1;
+  } else {
+    document.getElementById('legend').innerHTML=`
+      <span class="leg-item"><span class="leg-color" style="background:#a8c89a"></span> Historical Sales</span>
+      <span class="leg-item"><span class="leg-color" style="border-top:2px dashed #e8b84b;width:24px;display:inline-block"></span> Forecast</span>
+      <span class="leg-item"><span style="width:24px;height:10px;display:inline-block;background:rgba(232,184,75,.15);border:1px solid rgba(232,184,75,.3)"></span> 90% Confidence</span>
+    `;
+    drawCanvas(histData,result.fc,histData.length,{lo:result.lo,hi:result.hi});
+  }
+
+  /* validation metrics on last 6 months */
+  const actual=histData.slice(-6);
+  const meth2=document.getElementById('forecastMethod').value;
+  let valPred;
+  if(meth2==='exp') valPred=expSmoothing(histData.slice(0,-6),6).fc;
+  else if(meth2==='linreg') valPred=linRegForecast(histData.slice(0,-6),6).fc;
+  else valPred=smaForecast(histData.slice(0,-6),6).fc;
+  if(meth2==='all') valPred=smaForecast(histData.slice(0,-6),6).fc;
+  const m=calcMetrics(actual,valPred);
+  document.getElementById('m-mae').textContent=m.mae;
+  document.getElementById('m-rmse').textContent=m.rmse;
+  document.getElementById('m-mape').textContent=m.mape+'%';
+  document.getElementById('m-r2').textContent=m.r2;
+  document.getElementById('m-next').textContent=result.fc[0]?.toLocaleString()||'—';
+}
+
+/* ── INIT ── */
+generateData();
+drawCanvas(histData,[],0,[]);
+</script>
+</body>
+</html>

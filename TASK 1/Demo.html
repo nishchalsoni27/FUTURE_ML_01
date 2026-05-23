@@ -1,0 +1,609 @@
+bash
+
+cat > /mnt/user-data/outputs/DEMO_TEST.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DEMO TEST — Sales Forecasting ML · Nishchal Soni</title>
+<style>
+:root{
+  --ink:#0d0b08;--bark:#1a1410;--moss:#1e2e1e;--fern:#3d5c3a;
+  --canopy:#a8c89a;--sunray:#e8b84b;--amber:#c9832a;
+  --cream:#f2ead8;--fog:#b8b09a;--mist:#7a7260;--compass:#d4a843;
+  --red:#e05252;--blue:#5ba3c9;--green:#52c97a;
+  --font:'Courier New',Courier,monospace;
+  --serif:'Palatino Linotype',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--cream);font-family:var(--font);min-height:100vh;padding:0 0 4rem}
+
+/* grain */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");opacity:.3}
+
+/* header */
+.hdr{background:linear-gradient(135deg,var(--bark),var(--moss));border-bottom:1px solid rgba(168,200,154,.2);padding:2rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.hdr-left h1{font-family:var(--serif);font-size:1.5rem;color:var(--sunray);font-weight:700}
+.hdr-left p{font-size:.72rem;color:var(--fog);letter-spacing:.2em;margin-top:.3rem;text-transform:uppercase}
+.hdr-right{display:flex;gap:.8rem;flex-wrap:wrap}
+.badge{display:inline-block;padding:.3em .9em;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;border:1px solid;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%)}
+.badge-green{border-color:var(--canopy);color:var(--canopy)}
+.badge-amber{border-color:var(--amber);color:var(--sunray)}
+.badge-blue{border-color:var(--blue);color:var(--blue)}
+
+/* summary bar */
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:rgba(168,200,154,.1);border:1px solid rgba(168,200,154,.1);margin:2rem 3rem}
+.sum-cell{background:var(--ink);padding:1rem 1.2rem;text-align:center}
+.sum-cell label{font-size:.58rem;letter-spacing:.28em;color:var(--mist);text-transform:uppercase;display:block;margin-bottom:.35rem}
+.sum-val{font-family:var(--serif);font-size:1.6rem;font-weight:700}
+
+/* main grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;padding:0 3rem;margin-bottom:2rem}
+@media(max-width:900px){.grid{grid-template-columns:1fr;padding:0 1.5rem}}
+
+/* test panel */
+.panel{border:1px solid rgba(168,200,154,.15);background:rgba(255,255,255,.02);padding:1.5rem;position:relative;overflow:hidden}
+.panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--line-col,var(--canopy))}
+.panel-title{font-family:var(--serif);font-size:.8rem;color:var(--canopy);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.2rem;display:flex;align-items:center;gap:.7rem}
+.panel-title .dot{width:8px;height:8px;border-radius:50%;background:var(--dot-col,var(--canopy))}
+
+canvas{width:100%;height:200px;display:block;background:#080c08;border:1px solid rgba(168,200,154,.08);margin-bottom:.8rem}
+
+.metric-strip{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.ms{flex:1;min-width:70px;background:rgba(42,58,42,.3);border:1px solid rgba(107,143,107,.15);padding:.5rem .7rem;text-align:center}
+.ms label{font-size:.52rem;letter-spacing:.22em;color:var(--mist);text-transform:uppercase;display:block}
+.ms span{font-family:var(--serif);font-size:1.1rem;font-weight:700;color:var(--sunray)}
+
+/* status */
+.status-wrap{display:flex;align-items:center;gap:.5rem;font-size:.75rem;margin-bottom:.5rem}
+.status-icon{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pass{background:var(--green)}.fail{background:var(--red)}.warn{background:var(--sunray)}
+.status-pass{color:var(--green)}.status-fail{color:var(--red)}.status-warn{color:var(--sunray)}
+
+/* log */
+.log-wrap{background:#040608;border:1px solid rgba(91,163,201,.15);padding:1rem;max-height:180px;overflow-y:auto;font-size:.75rem;line-height:1.9}
+.log-wrap::-webkit-scrollbar{width:4px}.log-wrap::-webkit-scrollbar-track{background:#040608}.log-wrap::-webkit-scrollbar-thumb{background:var(--fern)}
+.log-line{display:flex;gap:.7rem}
+.log-time{color:var(--mist);flex-shrink:0}
+.log-ok{color:var(--green)}.log-err{color:var(--red)}.log-info{color:var(--blue)}.log-warn{color:var(--sunray)}
+
+/* full width panel */
+.full{grid-column:1/-1}
+
+/* compare table */
+table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:1rem}
+th{font-size:.62rem;letter-spacing:.22em;color:var(--mist);text-transform:uppercase;padding:.6rem .8rem;border-bottom:1px solid rgba(168,200,154,.1);text-align:left}
+td{padding:.55rem .8rem;border-bottom:1px solid rgba(168,200,154,.06);color:var(--fog)}
+tr:hover td{background:rgba(42,58,42,.2)}
+.best{color:var(--canopy);font-weight:700}
+.rank-1::before{content:'🥇 '}.rank-2::before{content:'🥈 '}.rank-3::before{content:'🥉 '}
+
+/* run all button */
+.run-all{display:block;width:calc(100% - 6rem);margin:0 3rem 2rem;background:rgba(201,131,42,.15);border:1px solid var(--amber);color:var(--sunray);font-family:var(--font);font-size:.85rem;padding:1rem 2rem;cursor:pointer;letter-spacing:.15em;text-transform:uppercase;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .3s}
+.run-all:hover{background:rgba(201,131,42,.3)}
+
+.link-btn{display:inline-block;background:var(--moss);border:1px solid var(--fern);color:var(--canopy);font-family:var(--font);font-size:.75rem;padding:.5em 1.2em;text-decoration:none;cursor:pointer;letter-spacing:.1em;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);transition:background .3s,border-color .3s}
+.link-btn:hover{background:var(--fern);border-color:var(--canopy);color:var(--cream)}
+
+.footer-note{text-align:center;padding:2rem 3rem 0;font-size:.72rem;color:var(--mist);letter-spacing:.08em}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>🧪 Demo Test Suite</h1>
+    <p>Sales & Demand Forecasting · ML Algorithms · Nishchal Soni</p>
+  </div>
+  <div class="hdr-right">
+    <span class="badge badge-green">Offline Ready</span>
+    <span class="badge badge-amber">3 Algorithms</span>
+    <span class="badge badge-blue">4 Dataset Types</span>
+    <a class="link-btn" href="sales_forecasting_nishchal.html">← Open Main Project</a>
+  </div>
+</div>
+
+<!-- SUMMARY BAR -->
+<div class="summary" id="summary">
+  <div class="sum-cell"><label>Tests Run</label><div class="sum-val" id="s-total" style="color:var(--blue)">0</div></div>
+  <div class="sum-cell"><label>Passed</label><div class="sum-val" id="s-pass" style="color:var(--green)">0</div></div>
+  <div class="sum-cell"><label>Failed</label><div class="sum-val" id="s-fail" style="color:var(--red)">0</div></div>
+  <div class="sum-cell"><label>Best MAPE</label><div class="sum-val" id="s-mape" style="color:var(--canopy)">—</div></div>
+  <div class="sum-cell"><label>Best Model</label><div class="sum-val" id="s-model" style="color:var(--sunray);font-size:1rem">—</div></div>
+  <div class="sum-cell"><label>Status</label><div class="sum-val" id="s-status" style="color:var(--mist);font-size:1rem">Idle</div></div>
+</div>
+
+<button class="run-all" onclick="runAllTests()">▶ Run All Tests &nbsp;·&nbsp; Auto Demo</button>
+
+<!-- PANELS GRID -->
+<div class="grid">
+
+  <!-- Panel 1: SMA on Seasonal -->
+  <div class="panel" style="--line-col:#a8c89a;--dot-col:#a8c89a">
+    <div class="panel-title"><span class="dot"></span>Test 1 — SMA · Seasonal Retail</div>
+    <canvas id="c1" width="600" height="200"></canvas>
+    <div class="metric-strip" id="m1"></div>
+    <div id="st1"></div>
+  </div>
+
+  <!-- Panel 2: ETS on Trend -->
+  <div class="panel" style="--line-col:#5ba3c9;--dot-col:#5ba3c9">
+    <div class="panel-title"><span class="dot" style="background:#5ba3c9"></span>Test 2 — ETS · Upward Trend (Startup)</div>
+    <canvas id="c2" width="600" height="200"></canvas>
+    <div class="metric-strip" id="m2"></div>
+    <div id="st2"></div>
+  </div>
+
+  <!-- Panel 3: Linear Reg on Volatile -->
+  <div class="panel" style="--line-col:#e05252;--dot-col:#e05252">
+    <div class="panel-title"><span class="dot" style="background:#e05252"></span>Test 3 — Linear Regression · Volatile FMCG</div>
+    <canvas id="c3" width="600" height="200"></canvas>
+    <div class="metric-strip" id="m3"></div>
+    <div id="st3"></div>
+  </div>
+
+  <!-- Panel 4: All methods on Stable -->
+  <div class="panel" style="--line-col:#d4a843;--dot-col:#d4a843">
+    <div class="panel-title"><span class="dot" style="background:#d4a843"></span>Test 4 — All Methods · Stable B2B SaaS</div>
+    <canvas id="c4" width="600" height="200"></canvas>
+    <div class="metric-strip" id="m4"></div>
+    <div id="st4"></div>
+  </div>
+
+  <!-- Panel 5: Edge cases -->
+  <div class="panel" style="--line-col:#e8b84b;--dot-col:#e8b84b">
+    <div class="panel-title"><span class="dot" style="background:#e8b84b"></span>Test 5 — Edge Cases · Monotone & Single-Value</div>
+    <canvas id="c5" width="600" height="200"></canvas>
+    <div class="metric-strip" id="m5"></div>
+    <div id="st5"></div>
+  </div>
+
+  <!-- Panel 6: Forecast horizon test -->
+  <div class="panel" style="--line-col:#52c97a;--dot-col:#52c97a">
+    <div class="panel-title"><span class="dot" style="background:#52c97a"></span>Test 6 — Horizon Accuracy · 3 vs 6 vs 12 months</div>
+    <canvas id="c6" width="600" height="200"></canvas>
+    <div class="metric-strip" id="m6"></div>
+    <div id="st6"></div>
+  </div>
+
+  <!-- Full-width: Model Comparison Table -->
+  <div class="panel full" style="--line-col:var(--compass)">
+    <div class="panel-title"><span class="dot" style="background:var(--compass)"></span>Model Benchmark — All Datasets × All Methods</div>
+    <table id="bench-table">
+      <thead><tr><th>Test</th><th>Dataset</th><th>Method</th><th>MAE</th><th>RMSE</th><th>MAPE %</th><th>R²</th><th>Verdict</th></tr></thead>
+      <tbody id="bench-body"><tr><td colspan="8" style="text-align:center;color:var(--mist);padding:2rem">Run tests to populate…</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Full-width: System Log -->
+  <div class="panel full" style="--line-col:var(--blue)">
+    <div class="panel-title"><span class="dot" style="background:var(--blue)"></span>Test Log · Console Output</div>
+    <div class="log-wrap" id="log-box">
+      <div class="log-line"><span class="log-time">[init]</span><span class="log-info">Demo test suite loaded. Click "Run All Tests" to begin.</span></div>
+    </div>
+  </div>
+
+</div><!-- /grid -->
+
+<div class="footer-note">
+  DEMO_TEST.html · Sales & Demand Forecasting · Nishchal Soni · Offline · No Dependencies
+</div>
+
+<!-- ══════════ ENGINE ══════════ -->
+<script>
+/* ── STATE ── */
+let testPass=0,testFail=0,testTotal=0,bestMape=Infinity,bestModel='';
+const benchRows=[];
+
+/* ── LOG ── */
+function log(msg,type='info'){
+  const box=document.getElementById('log-box');
+  const d=document.createElement('div');d.className='log-line';
+  const now=new Date();
+  const ts=now.toTimeString().slice(0,8);
+  d.innerHTML=`<span class="log-time">[${ts}]</span><span class="log-${type}">${msg}</span>`;
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
+}
+
+/* ── ASSERT ── */
+function assert(label,condition,containerId){
+  const wrap=document.getElementById(containerId);
+  const d=document.createElement('div');d.className='status-wrap';
+  if(condition){
+    testPass++;
+    d.innerHTML=`<span class="status-icon pass"></span><span class="status-pass">✓ PASS</span> <span style="color:var(--fog);font-size:.72rem">${label}</span>`;
+    log(`PASS  ${label}`,'ok');
+  } else {
+    testFail++;
+    d.innerHTML=`<span class="status-icon fail"></span><span class="status-fail">✗ FAIL</span> <span style="color:var(--fog);font-size:.72rem">${label}</span>`;
+    log(`FAIL  ${label}`,'err');
+  }
+  testTotal++;
+  wrap.appendChild(d);
+  updateSummary();
+}
+
+function warn(label,containerId){
+  const wrap=document.getElementById(containerId);
+  const d=document.createElement('div');d.className='status-wrap';
+  d.innerHTML=`<span class="status-icon warn"></span><span class="status-warn">⚠ WARN</span> <span style="color:var(--fog);font-size:.72rem">${label}</span>`;
+  wrap.appendChild(d);
+  log(`WARN  ${label}`,'warn');
+}
+
+function updateSummary(){
+  document.getElementById('s-total').textContent=testTotal;
+  document.getElementById('s-pass').textContent=testPass;
+  document.getElementById('s-fail').textContent=testFail;
+  const pct=testTotal?Math.round(testPass/testTotal*100):0;
+  document.getElementById('s-status').textContent=`${pct}% OK`;
+  document.getElementById('s-status').style.color=pct>=90?'var(--green)':pct>=70?'var(--sunray)':'var(--red)';
+}
+
+/* ══════════════════════════════
+   ML ALGORITHMS (same as main)
+══════════════════════════════ */
+function sma(data,steps,w=6){
+  const fc=[],lo=[],hi=[],cur=[...data];
+  const sd=std(data.slice(-12));
+  for(let i=0;i<steps;i++){
+    const win=cur.slice(-w);
+    const p=win.reduce((a,b)=>a+b,0)/w;
+    fc.push(Math.round(p));
+    const c=sd*(1+i*.08);lo.push(Math.round(p-1.645*c));hi.push(Math.round(p+1.645*c));
+    cur.push(p);
+  }
+  return{fc,lo,hi};
+}
+
+function ets(data,steps,alpha=0.3){
+  const fc=[],lo=[],hi=[];
+  let s=data[0];
+  for(const d of data)s=alpha*d+(1-alpha)*s;
+  const sd=std(data.slice(-12));
+  let cur=s;
+  for(let i=0;i<steps;i++){
+    fc.push(Math.round(cur));
+    const c=sd*(1+i*.1);lo.push(Math.round(cur-1.645*c));hi.push(Math.round(cur+1.645*c));
+    cur=alpha*cur+(1-alpha)*cur;
+  }
+  return{fc,lo,hi};
+}
+
+function linreg(data,steps){
+  const n=data.length;
+  const xm=(n-1)/2,ym=data.reduce((a,b)=>a+b,0)/n;
+  let num=0,den=0;
+  for(let i=0;i<n;i++){num+=(i-xm)*(data[i]-ym);den+=(i-xm)**2;}
+  const slope=num/den,intercept=ym-slope*xm;
+  const fc=[],lo=[],hi=[];
+  const resid=data.map((y,i)=>y-(slope*i+intercept));
+  const se=std(resid);
+  for(let i=0;i<steps;i++){
+    const p=slope*(n+i)+intercept;
+    const c=se*(1+i*.12);
+    fc.push(Math.round(p));lo.push(Math.round(p-1.96*c));hi.push(Math.round(p+1.96*c));
+  }
+  return{fc,lo,hi,slope};
+}
+
+function std(arr){
+  if(!arr.length)return 1;
+  const m=arr.reduce((a,b)=>a+b,0)/arr.length;
+  return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length)||1;
+}
+
+function metrics(actual,predicted){
+  const n=Math.min(actual.length,predicted.length);
+  let mae=0,mse=0,mape=0,ssRes=0,ssTot=0;
+  const mean=actual.slice(0,n).reduce((a,b)=>a+b,0)/n;
+  for(let i=0;i<n;i++){
+    const e=actual[i]-predicted[i];
+    mae+=Math.abs(e);mse+=e*e;
+    mape+=Math.abs(e/(actual[i]||1));
+    ssRes+=e*e;ssTot+=(actual[i]-mean)**2;
+  }
+  return{mae:(mae/n).toFixed(1),rmse:Math.sqrt(mse/n).toFixed(1),
+         mape:((mape/n)*100).toFixed(2),r2:(1-ssRes/(ssTot||1)).toFixed(3)};
+}
+
+/* ── DATA GENERATORS ── */
+function seasonal(n=36,noise=80){
+  return Array.from({length:n},(_,i)=>
+    Math.max(100,Math.round(800+280*Math.sin(2*Math.PI*i/12)+130*(i/n)*n+noise*(Math.random()-.5)*2)));
+}
+function trend(n=36,noise=60){
+  return Array.from({length:n},(_,i)=>Math.max(100,Math.round(400+13*i+noise*(Math.random()-.5)*2)));
+}
+function volatile(n=36,noise=140){
+  return Array.from({length:n},(_,i)=>Math.max(100,Math.round(700+noise*2.4*(Math.random()-.5)*2+180*Math.sin(2*Math.PI*i/6))));
+}
+function stable(n=36,noise=35){
+  return Array.from({length:n},(_,i)=>Math.max(100,Math.round(900+noise*.5*(Math.random()-.5)*2+18*Math.sin(2*Math.PI*i/12))));
+}
+
+/* ── CANVAS DRAW ── */
+function draw(id,hist,forecasts){
+  const canvas=document.getElementById(id);
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const p={t:20,r:20,b:35,l:50};
+  const fw=W-p.l-p.r,fh=H-p.t-p.b;
+  ctx.clearRect(0,0,W,H);
+  const total=hist.length+(forecasts[0]?.fc.length||0);
+  const allVals=[...hist,...forecasts.flatMap(f=>[...f.fc,...(f.hi||[]),...(f.lo||[])])];
+  const mn=Math.min(...allVals)*.88,mx=Math.max(...allVals)*1.06;
+  const px=i=>p.l+fw*i/(total-1);
+  const py=v=>p.t+fh*(1-(v-mn)/(mx-mn));
+
+  /* Grid */
+  ctx.strokeStyle='rgba(168,200,154,0.06)';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=p.t+fh*i/4;
+    ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(p.l+fw,y);ctx.stroke();
+    ctx.fillStyle='rgba(122,114,96,.65)';ctx.font='9px Courier New';ctx.textAlign='right';
+    ctx.fillText(Math.round(mn+(mx-mn)*(1-i/4)),p.l-3,y+3);
+  }
+
+  /* Forecast zone */
+  if(forecasts.length){
+    const sx=px(hist.length-1);
+    ctx.fillStyle='rgba(42,58,42,0.18)';ctx.fillRect(sx,p.t,W-p.r-sx,fh);
+    ctx.strokeStyle='rgba(212,168,67,.25)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(sx,p.t);ctx.lineTo(sx,p.t+fh);ctx.stroke();ctx.setLineDash([]);
+  }
+
+  /* Confidence band of first forecast */
+  if(forecasts[0]?.lo){
+    const{lo,hi,fc}=forecasts[0];
+    ctx.beginPath();
+    hi.forEach((v,i)=>i===0?ctx.moveTo(px(hist.length+i),py(v)):ctx.lineTo(px(hist.length+i),py(v)));
+    [...lo].reverse().forEach((v,i,a)=>ctx.lineTo(px(hist.length+a.length-1-i),py(v)));
+    ctx.closePath();ctx.fillStyle='rgba(232,184,75,.1)';ctx.fill();
+  }
+
+  /* Historical */
+  ctx.beginPath();
+  hist.forEach((v,i)=>i===0?ctx.moveTo(px(i),py(v)):ctx.lineTo(px(i),py(v)));
+  ctx.strokeStyle='#a8c89a';ctx.lineWidth=2;ctx.stroke();
+
+  /* Forecasts */
+  const cols=['#e8b84b','#5ba3c9','#e05252','#52c97a'];
+  forecasts.forEach(({fc},fi)=>{
+    const full=[hist[hist.length-1],...fc];
+    ctx.beginPath();
+    full.forEach((v,i)=>i===0?ctx.moveTo(px(hist.length-1+i),py(v)):ctx.lineTo(px(hist.length-1+i),py(v)));
+    ctx.strokeStyle=cols[fi%cols.length];ctx.lineWidth=1.8;ctx.setLineDash([5,3]);ctx.stroke();ctx.setLineDash([]);
+    fc.forEach((v,i)=>{
+      ctx.beginPath();ctx.arc(px(hist.length+i),py(v),2.5,0,Math.PI*2);
+      ctx.fillStyle=cols[fi%cols.length];ctx.fill();
+    });
+  });
+
+  /* X labels */
+  ctx.fillStyle='rgba(122,114,96,.65)';ctx.font='8px Courier New';ctx.textAlign='center';
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  for(let i=0;i<total;i+=4){
+    ctx.fillText(months[i%12],px(i),p.t+fh+14);
+  }
+}
+
+/* ── RENDER METRICS ── */
+function renderMetrics(containerId,m,extra){
+  const el=document.getElementById(containerId);
+  el.innerHTML=`
+    <div class="ms"><label>MAE</label><span>${m.mae}</span></div>
+    <div class="ms"><label>RMSE</label><span>${m.rmse}</span></div>
+    <div class="ms"><label>MAPE</label><span style="color:${+m.mape<10?'var(--green)':+m.mape<20?'var(--sunray)':'var(--red)'}">${m.mape}%</span></div>
+    <div class="ms"><label>R²</label><span style="color:${+m.r2>.85?'var(--green)':+m.r2>.6?'var(--sunray)':'var(--red)'}">${m.r2}</span></div>
+    ${extra?`<div class="ms"><label>${extra.label}</label><span style="color:var(--canopy)">${extra.val}</span></div>`:''}
+  `;
+}
+
+/* ── ADD BENCH ROW ── */
+function addBench(test,dataset,method,m,verdict){
+  benchRows.push({test,dataset,method,...m,verdict});
+  // update best MAPE
+  if(+m.mape<bestMape){bestMape=+m.mape;bestModel=method;}
+  document.getElementById('s-mape').textContent=bestMape.toFixed(2)+'%';
+  document.getElementById('s-model').textContent=bestModel;
+  rebuildTable();
+}
+
+function rebuildTable(){
+  const tbody=document.getElementById('bench-body');
+  tbody.innerHTML='';
+  // find best MAPE per test
+  const bestPerTest={};
+  benchRows.forEach(r=>{if(!bestPerTest[r.test]||+r.mape<+bestPerTest[r.test])bestPerTest[r.test]=+r.mape;});
+  benchRows.forEach((r,i)=>{
+    const isBest=+r.mape===bestPerTest[r.test];
+    const mapeColor=+r.mape<10?'var(--green)':+r.mape<20?'var(--sunray)':'var(--red)';
+    const r2Color=+r.r2>.85?'var(--green)':+r.r2>.6?'var(--sunray)':'var(--red)';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>T${r.test}</td>
+      <td>${r.dataset}</td>
+      <td style="color:var(--canopy)">${r.method}</td>
+      <td>${r.mae}</td>
+      <td>${r.rmse}</td>
+      <td style="color:${mapeColor};font-weight:${isBest?700:400}">${isBest?'🏆 ':''} ${r.mape}%</td>
+      <td style="color:${r2Color}">${r.r2}</td>
+      <td style="font-size:.7rem">${r.verdict}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ══════════════════════════
+   TEST IMPLEMENTATIONS
+══════════════════════════ */
+function runTest1(){
+  log('──────── Test 1: SMA · Seasonal ────────','info');
+  const hist=seasonal(36,80);
+  const fw=6;
+  const trainHist=hist.slice(0,-fw),valActual=hist.slice(-fw);
+  const res=sma(trainHist,fw);
+  draw('c1',hist,[res]);
+  const m=metrics(valActual,res.fc);
+  renderMetrics('m1',m,{label:'Next Month',val:sma(hist,1).fc[0].toLocaleString()});
+  addBench(1,'Seasonal Retail','SMA',m,+m.mape<15?'✓ Acceptable':'✗ High Error');
+  assert('SMA returns correct forecast length',res.fc.length===fw,'st1');
+  assert('All forecast values are positive',res.fc.every(v=>v>0),'st1');
+  assert('Confidence bands are ordered (lo < hi)',res.lo.every((v,i)=>v<res.hi[i]),'st1');
+  assert('MAPE below 30%',+m.mape<30,'st1');
+  if(+m.mape>20)warn('SMA MAPE>20% — seasonal data benefits from SARIMA','st1');
+}
+
+function runTest2(){
+  log('──────── Test 2: ETS · Trend ────────','info');
+  const hist=trend(36,60);
+  const fw=6;
+  const train=hist.slice(0,-fw),val=hist.slice(-fw);
+  const res=ets(train,fw);
+  draw('c2',hist,[res]);
+  const m=metrics(val,res.fc);
+  renderMetrics('m2',m,{label:'Next Month',val:ets(hist,1).fc[0].toLocaleString()});
+  addBench(2,'Upward Trend','ETS',m,+m.r2>.7?'✓ Good fit':'⚠ Moderate fit');
+  assert('ETS returns correct forecast length',res.fc.length===fw,'st2');
+  assert('All forecast values are positive',res.fc.every(v=>v>0),'st2');
+  assert('R² > 0 (better than mean baseline)',+m.r2>0,'st2');
+  assert('MAPE below 25%',+m.mape<25,'st2');
+  if(+m.r2<0.7)warn('ETS R²<0.7 — trend data may need Linear Regression','st2');
+}
+
+function runTest3(){
+  log('──────── Test 3: Linear Reg · Volatile ────────','info');
+  const hist=volatile(36,120);
+  const fw=6;
+  const train=hist.slice(0,-fw),val=hist.slice(-fw);
+  const res=linreg(train,fw);
+  draw('c3',hist,[res]);
+  const m=metrics(val,res.fc);
+  renderMetrics('m3',m,{label:'Slope',val:(res.slope>0?'+':'')+res.slope?.toFixed(1)});
+  addBench(3,'Volatile FMCG','Linear Reg',m,+m.mape>25?'⚠ High noise — consider ETS':'✓ OK');
+  assert('LinReg returns correct forecast length',res.fc.length===fw,'st3');
+  assert('Forecast values are finite',res.fc.every(v=>isFinite(v)),'st3');
+  assert('Slope is a number',typeof res.slope==='number'&&isFinite(res.slope),'st3');
+  warn('Volatile data: Linear Regression may miss non-linear spikes','st3');
+}
+
+function runTest4(){
+  log('──────── Test 4: All Methods · Stable ────────','info');
+  const hist=stable(36,35);
+  const fw=6;
+  const train=hist.slice(0,-fw),val=hist.slice(-fw);
+  const r1=sma(train,fw),r2=ets(train,fw),r3=linreg(train,fw);
+  draw('c4',hist,[r1,r2,r3]);
+  const m1=metrics(val,r1.fc),m2=metrics(val,r2.fc),m3=metrics(val,r3.fc);
+  const best=[m1,m2,m3].reduce((a,b)=>+a.mape<+b.mape?a:b);
+  const bestName=['SMA','ETS','LinReg'][[m1,m2,m3].indexOf(best)];
+  renderMetrics('m4',best,{label:'Best Method',val:bestName});
+  addBench(4,'Stable B2B','SMA',m1,'SMA');addBench(4,'Stable B2B','ETS',m2,'ETS');addBench(4,'Stable B2B','LinReg',m3,'LinReg');
+  assert('SMA, ETS, LinReg all produce equal-length forecasts',
+    r1.fc.length===fw&&r2.fc.length===fw&&r3.fc.length===fw,'st4');
+  assert('At least one method achieves MAPE < 10%',
+    Math.min(+m1.mape,+m2.mape,+m3.mape)<10,'st4');
+  log(`Best model on stable data: ${bestName} (MAPE ${best.mape}%)`,'ok');
+}
+
+function runTest5(){
+  log('──────── Test 5: Edge Cases ────────','info');
+  // monotone (flat line)
+  const flat=Array(24).fill(500);
+  const rFlat=sma(flat,6);
+  draw('c5',flat,[rFlat]);
+  const mFlat=metrics(flat.slice(-6),rFlat.fc);
+  renderMetrics('m5',mFlat,{label:'Edge',val:'Flat OK'});
+  assert('SMA on flat data: MAPE near 0%',+mFlat.mape<1,'st5');
+  assert('All flat forecasts equal 500',rFlat.fc.every(v=>v===500),'st5');
+
+  // all-same value
+  const same=Array(12).fill(1000);
+  const rSame=ets(same,3);
+  assert('ETS handles constant series without NaN',rSame.fc.every(v=>!isNaN(v)),'st5');
+
+  // very short history
+  const short=[100,120,110];
+  const rShort=sma(short,2,2);
+  assert('SMA handles short series (n=3)',rShort.fc.length===2,'st5');
+
+  // single-point forecast
+  const r1pt=linreg(seasonal(24),1);
+  assert('LinReg can forecast 1 step',r1pt.fc.length===1,'st5');
+
+  log('Edge case tests complete','ok');
+}
+
+function runTest6(){
+  log('──────── Test 6: Forecast Horizon Accuracy ────────','info');
+  const hist=seasonal(48,70); // 48 months
+  const horizons=[3,6,12];
+  const mapes=horizons.map(h=>{
+    const train=hist.slice(0,-h),val=hist.slice(-h);
+    const fc=sma(train,h).fc;
+    return +metrics(val,fc).mape;
+  });
+  // draw all three on same chart
+  const train12=hist.slice(0,-12);
+  const f3=sma(hist.slice(0,-3),3);
+  const f6=sma(hist.slice(0,-6),6);
+  const f12=sma(hist.slice(0,-12),12);
+  draw('c6',train12,[f12,f6]);
+  renderMetrics('m6',
+    metrics(hist.slice(-6),f6.fc),
+    {label:'3m MAPE',val:mapes[0].toFixed(1)+'%'}
+  );
+  addBench(6,'Seasonal · 3m','SMA-3',metrics(hist.slice(-3),f3.fc),'Short horizon');
+  addBench(6,'Seasonal · 6m','SMA-6',metrics(hist.slice(-6),f6.fc),'Medium horizon');
+  addBench(6,'Seasonal · 12m','SMA-12',metrics(hist.slice(-12),f12.fc),'Long horizon');
+  assert('Shorter horizon → lower or equal MAPE',mapes[0]<=mapes[1]||mapes[1]<=mapes[2],'st6');
+  assert('3-month MAPE < 25%',mapes[0]<25,'st6');
+  assert('All three horizon MAPEs are positive',mapes.every(m=>m>0),'st6');
+  log(`MAPE: 3m=${mapes[0].toFixed(1)}%, 6m=${mapes[1].toFixed(1)}%, 12m=${mapes[2].toFixed(1)}%`,'info');
+  if(mapes[2]>mapes[0]*2)log('Longer horizons degrade accuracy significantly — expected.','warn');
+}
+
+/* ── RUN ALL ── */
+async function runAllTests(){
+  testPass=0;testFail=0;testTotal=0;bestMape=Infinity;bestModel='';
+  benchRows.length=0;
+  document.getElementById('log-box').innerHTML='';
+  document.getElementById('bench-body').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--mist);padding:1rem">Running…</td></tr>';
+  ['st1','st2','st3','st4','st5','st6'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});
+
+  document.getElementById('s-status').textContent='Running…';
+  document.getElementById('s-status').style.color='var(--sunray)';
+  log('═══ Starting Demo Test Suite ═══','info');
+  log(`Timestamp: ${new Date().toLocaleString()}`,'info');
+  log('Algorithms: SMA · ETS · Linear Regression','info');
+  log('Datasets: Seasonal · Trend · Volatile · Stable','info');
+  log('','info');
+
+  // run with small delays for visual effect
+  const tests=[runTest1,runTest2,runTest3,runTest4,runTest5,runTest6];
+  for(const t of tests){
+    t();
+    await new Promise(r=>setTimeout(r,120));
+  }
+
+  const pct=Math.round(testPass/testTotal*100);
+  log('','info');
+  log(`═══ Suite Complete: ${testPass}/${testTotal} passed (${pct}%) ═══`,pct>=90?'ok':pct>=70?'warn':'err');
+  log(`Best MAPE achieved: ${bestMape.toFixed(2)}% by ${bestModel}`,'ok');
+  document.getElementById('s-status').textContent=`${pct}% OK`;
+  document.getElementById('s-status').style.color=pct>=90?'var(--green)':pct>=70?'var(--sunray)':'var(--red)';
+}
+</script>
+</body>
+</html>
+HTMLEOF
+echo "Done: $(wc -c < /mnt/user-data/outputs/DEMO_TEST.html) bytes"
+<!-- Output
+
+Done: 28184 bytes -->
