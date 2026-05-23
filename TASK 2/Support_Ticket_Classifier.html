@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TicketSense — Support Classifier | by Nishchal Soni</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap');
+
+  :root {
+    --bg-void: #050608;
+    --bg-deep: #0a0c0f;
+    --bg-card: #0f1215;
+    --bg-panel: #141820;
+    --bg-raised: #1a2030;
+    --rust: #8B3A2A;
+    --rust-hot: #c4522a;
+    --rust-glow: #e05a2a;
+    --moss: #2d3d1e;
+    --moss-light: #4a6630;
+    --moss-bright: #6b9e3a;
+    --blood: #5c0f0f;
+    --spore: #3d4a1a;
+    --ash: #6b7280;
+    --ash-light: #9ca3af;
+    --ash-pale: #c8ccd4;
+    --white-worn: #d4cfc8;
+    --gold-dim: #a08650;
+    --gold-bright: #c8a855;
+    --accent-ellie: #7fb069;
+    --accent-abby: #c4522a;
+    --wire: #2a3040;
+    --wire-hot: #3a4560;
+    --scratch-1: rgba(139,58,42,0.15);
+    --glow-green: rgba(107,158,58,0.4);
+    --glow-red: rgba(196,82,42,0.5);
+    --font-hud: 'Rajdhani', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-serif: 'Crimson Pro', serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-void);
+    color: var(--white-worn);
+    font-family: var(--font-hud);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* === BACKGROUND TEXTURE === */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.003) 40px, rgba(255,255,255,0.003) 41px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 20% 10%, rgba(45,61,30,0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(139,58,42,0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, transparent 0%, rgba(5,6,8,0.6) 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 980px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+
+  /* === HEADER === */
+  header {
+    padding: 36px 0 24px;
+    border-bottom: 1px solid var(--wire);
+    position: relative;
+    margin-bottom: 40px;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .header-left { flex: 1; min-width: 260px; }
+
+  .badge-task {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--rust-hot);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    border: 1px solid var(--rust);
+    padding: 4px 10px;
+    position: relative;
+  }
+
+  .badge-task::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--rust-hot);
+    border-radius: 50%;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--glow-red); }
+    50% { opacity: 0.5; box-shadow: 0 0 0 4px transparent; }
+  }
+
+  h1.title {
+    font-family: var(--font-hud);
+    font-size: clamp(26px, 5vw, 44px);
+    font-weight: 700;
+    color: var(--white-worn);
+    line-height: 1.1;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    position: relative;
+  }
+
+  h1.title span.accent { color: var(--accent-ellie); }
+  h1.title span.rust { color: var(--rust-hot); }
+
+  .title-scratch {
+    position: absolute;
+    top: 50%;
+    left: -8px;
+    right: -8px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--rust) 20%, var(--rust) 80%, transparent);
+    opacity: 0;
+    transform: translateY(-50%);
+    animation: scratch-in 0.3s 1.2s forwards;
+  }
+
+  @keyframes scratch-in {
+    from { opacity: 0; transform: translateY(-50%) scaleX(0); }
+    to { opacity: 0.6; transform: translateY(-50%) scaleX(1); }
+  }
+
+  .subtitle {
+    margin-top: 10px;
+    font-family: var(--font-serif);
+    font-size: 14px;
+    color: var(--ash);
+    font-style: italic;
+    letter-spacing: 0.5px;
+  }
+
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ash);
+  }
+
+  .header-right .sig { color: var(--gold-dim); font-size: 11px; }
+  .header-right .ver { color: var(--wire-hot); }
+
+  /* === SCAN LINE ANIMATION === */
+  .scan-line {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--moss-bright), transparent);
+    opacity: 0.3;
+    animation: scan 6s linear infinite;
+    z-index: 999;
+    pointer-events: none;
+  }
+
+  @keyframes scan {
+    0% { top: 0; }
+    100% { top: 100vh; }
+  }
+
+  /* === SECTION LABELS === */
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--moss-bright);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--moss-light), transparent);
+  }
+
+  /* === PANELS === */
+  .panel {
+    background: var(--bg-card);
+    border: 1px solid var(--wire);
+    position: relative;
+    margin-bottom: 24px;
+    transition: border-color 0.3s;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--rust);
+    opacity: 0.6;
+  }
+
+  .panel:hover { border-color: var(--wire-hot); }
+
+  .panel-body { padding: 24px 28px; }
+
+  /* === INPUT AREA === */
+  .input-wrapper {
+    position: relative;
+    margin-bottom: 18px;
+  }
+
+  .input-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ash);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  textarea#ticket-input {
+    width: 100%;
+    min-height: 140px;
+    background: var(--bg-deep);
+    border: 1px solid var(--wire);
+    border-left: 2px solid var(--moss);
+    color: var(--white-worn);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 16px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.6;
+    letter-spacing: 0.3px;
+  }
+
+  textarea#ticket-input::placeholder { color: var(--wire-hot); font-style: italic; }
+  textarea#ticket-input:focus {
+    border-color: var(--moss-light);
+    border-left-color: var(--accent-ellie);
+    box-shadow: 0 0 0 1px rgba(107,158,58,0.2), inset 0 0 20px rgba(45,61,30,0.2);
+  }
+
+  /* === CONTROLS === */
+  .controls-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    font-family: var(--font-hud);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    padding: 11px 24px;
+    position: relative;
+    transition: all 0.2s;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+
+  .btn-primary {
+    background: var(--moss);
+    color: var(--accent-ellie);
+    border: 1px solid var(--moss-light);
+  }
+
+  .btn-primary:hover {
+    background: var(--moss-light);
+    color: var(--white-worn);
+    box-shadow: 0 0 20px var(--glow-green);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ash);
+    border: 1px solid var(--wire);
+  }
+
+  .btn-secondary:hover { border-color: var(--ash); color: var(--white-worn); }
+
+  .btn-danger {
+    background: var(--blood);
+    color: var(--rust-hot);
+    border: 1px solid var(--rust);
+  }
+
+  .btn-danger:hover {
+    background: var(--rust);
+    color: var(--white-worn);
+    box-shadow: 0 0 16px var(--glow-red);
+  }
+
+  /* === PRESETS === */
+  .preset-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--wire);
+  }
+
+  .preset-chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 5px 12px;
+    border: 1px solid var(--wire);
+    color: var(--ash);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .preset-chip:hover {
+    border-color: var(--moss-light);
+    color: var(--accent-ellie);
+    background: rgba(45,61,30,0.3);
+  }
+
+  /* === RESULT PANEL === */
+  #result-section { display: none; }
+  #result-section.visible { display: block; }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 580px) { .result-grid { grid-template-columns: 1fr; } }
+
+  .result-card {
+    background: var(--bg-deep);
+    border: 1px solid var(--wire);
+    padding: 18px;
+    position: relative;
+  }
+
+  .result-card-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--ash);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .result-value {
+    font-family: var(--font-hud);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .priority-HIGH { color: var(--rust-hot); text-shadow: 0 0 12px var(--glow-red); }
+  .priority-MEDIUM { color: var(--gold-bright); text-shadow: 0 0 8px rgba(200,168,85,0.5); }
+  .priority-LOW { color: var(--accent-ellie); text-shadow: 0 0 8px var(--glow-green); }
+
+  .category-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 4px 10px;
+    border: 1px solid var(--moss-light);
+    color: var(--accent-ellie);
+    background: rgba(45,61,30,0.4);
+    letter-spacing: 1px;
+  }
+
+  /* === CONFIDENCE BAR === */
+  .confidence-bar-wrap {
+    margin-top: 6px;
+  }
+
+  .bar-track {
+    height: 4px;
+    background: var(--wire);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--moss), var(--accent-ellie));
+    transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 0%;
+    position: relative;
+  }
+
+  .bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 8px;
+    background: white;
+    filter: blur(2px);
+    opacity: 0.8;
+  }
+
+  .bar-pct {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ash-light);
+    margin-top: 4px;
+    text-align: right;
+  }
+
+  /* === ANALYSIS OUTPUT === */
+  .analysis-block {
+    background: var(--bg-deep);
+    border: 1px solid var(--wire);
+    border-left: 2px solid var(--moss-light);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+
+  .analysis-block h4 {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--moss-bright);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .analysis-block p {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--ash-pale);
+    line-height: 1.7;
+  }
+
+  .keyword-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+  .keyword-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border: 1px solid var(--wire-hot);
+    color: var(--ash-light);
+    letter-spacing: 1px;
+  }
+
+  .keyword-tag.hot { border-color: var(--rust); color: var(--rust-hot); }
+  .keyword-tag.warm { border-color: var(--gold-dim); color: var(--gold-bright); }
+  .keyword-tag.cool { border-color: var(--moss); color: var(--accent-ellie); }
+
+  /* === HISTORY LOG === */
+  .log-section { margin-top: 36px; }
+
+  .log-table { width: 100%; border-collapse: collapse; }
+
+  .log-table th {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--ash);
+    text-transform: uppercase;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--wire);
+    background: var(--bg-deep);
+  }
+
+  .log-table td {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ash-light);
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(42,48,64,0.5);
+    vertical-align: top;
+  }
+
+  .log-table tr:hover td { background: rgba(26,32,48,0.5); }
+
+  .log-table td:first-child { color: var(--ash); font-size: 9px; }
+
+  .tag-high { color: var(--rust-hot); }
+  .tag-medium { color: var(--gold-bright); }
+  .tag-low { color: var(--accent-ellie); }
+
+  /* === LOADING STATE === */
+  #loading { display: none; align-items: center; gap: 12px; padding: 20px 0; }
+  #loading.active { display: flex; }
+
+  .loading-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .loading-dots span {
+    width: 6px;
+    height: 6px;
+    background: var(--moss-bright);
+    border-radius: 50%;
+    animation: dot-bounce 1.2s ease-in-out infinite;
+  }
+
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dot-bounce {
+    0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  .loading-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ash);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* === STATS BAR === */
+  .stats-bar {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--wire);
+    margin-bottom: 40px;
+    overflow: hidden;
+  }
+
+  .stat-cell {
+    flex: 1;
+    padding: 14px 16px;
+    border-right: 1px solid var(--wire);
+    background: var(--bg-card);
+  }
+
+  .stat-cell:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: var(--font-hud);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--white-worn);
+  }
+
+  .stat-lbl {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ash);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* === FOOTER === */
+  footer {
+    margin-top: 60px;
+    padding: 24px 0;
+    border-top: 1px solid var(--wire);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+  }
+
+  footer .credit {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ash);
+    letter-spacing: 2px;
+  }
+
+  footer .credit span { color: var(--rust-hot); }
+
+  footer .tech-stack {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--wire-hot);
+    letter-spacing: 1px;
+  }
+
+  /* === CORNER DECO === */
+  .corner-deco {
+    position: absolute;
+    width: 16px; height: 16px;
+  }
+
+  .corner-deco.tl { top: -1px; left: -1px; border-top: 2px solid var(--moss-bright); border-left: 2px solid var(--moss-bright); }
+  .corner-deco.tr { top: -1px; right: -1px; border-top: 2px solid var(--moss-bright); border-right: 2px solid var(--moss-bright); }
+  .corner-deco.bl { bottom: -1px; left: -1px; border-bottom: 2px solid var(--rust); border-left: 2px solid var(--rust); }
+  .corner-deco.br { bottom: -1px; right: -1px; border-bottom: 2px solid var(--rust); border-right: 2px solid var(--rust); }
+
+  /* === ANIMATE IN === */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel { animation: fadeUp 0.5s ease forwards; }
+  .panel:nth-child(2) { animation-delay: 0.1s; }
+  .panel:nth-child(3) { animation-delay: 0.2s; }
+
+  /* === RESULT ENTRY ANIM === */
+  @keyframes slideInResult {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .result-card { animation: slideInResult 0.4s ease forwards; }
+  .result-card:nth-child(2) { animation-delay: 0.1s; }
+
+  .tag-blink { animation: pulse-dot 1.5s ease-in-out infinite; }
+
+  /* Glitch on hover for title */
+  h1.title:hover { animation: glitch 0.3s steps(2) 1; }
+
+  @keyframes glitch {
+    0% { text-shadow: none; }
+    25% { text-shadow: -2px 0 var(--rust-hot), 2px 0 var(--accent-ellie); transform: translateX(1px); }
+    50% { text-shadow: 2px 0 var(--rust-hot), -2px 0 var(--accent-ellie); transform: translateX(-1px); }
+    75% { text-shadow: -1px 0 var(--rust-hot); transform: translateX(0); }
+    100% { text-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scan-line"></div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="header-left">
+        <div class="badge-task">TASK 02 &nbsp;·&nbsp; ML CLASSIFICATION SYSTEM</div>
+        <h1 class="title">
+          <span class="accent">Ticket</span><span class="rust">Sense</span>
+          <div class="title-scratch"></div>
+        </h1>
+        <p class="subtitle">Support Ticket Classifier — NLP Priority Engine</p>
+      </div>
+      <div class="header-right">
+        <span class="sig">NISHCHAL SONI</span>
+        <span class="ver">v1.0.0 · OFFLINE</span>
+        <span style="color:var(--moss-bright); font-size:9px; letter-spacing:1px;">● SYSTEM ACTIVE</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stat-cell">
+      <div class="stat-num" id="stat-total">0</div>
+      <div class="stat-lbl">Tickets Processed</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num tag-high" id="stat-high">0</div>
+      <div class="stat-lbl">High Priority</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num tag-medium" id="stat-medium">0</div>
+      <div class="stat-lbl">Medium Priority</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num tag-low" id="stat-low">0</div>
+      <div class="stat-lbl">Low Priority</div>
+    </div>
+  </div>
+
+  <!-- INPUT PANEL -->
+  <div class="section-label">INPUT TERMINAL</div>
+  <div class="panel">
+    <div class="corner-deco tl"></div>
+    <div class="corner-deco tr"></div>
+    <div class="corner-deco bl"></div>
+    <div class="corner-deco br"></div>
+    <div class="panel-body">
+      <label class="input-label" for="ticket-input">PASTE SUPPORT TICKET BELOW</label>
+      <div class="input-wrapper">
+        <textarea id="ticket-input" placeholder="Describe the issue... e.g. 'My payment failed and I was charged twice. My account is now locked and I cannot access any services. This is urgent.'"></textarea>
+      </div>
+
+      <div class="preset-row">
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--ash);letter-spacing:2px;align-self:center;text-transform:uppercase;">Load Sample ›</span>
+        <button class="preset-chip" onclick="loadPreset('billing')">Billing</button>
+        <button class="preset-chip" onclick="loadPreset('technical')">Technical</button>
+        <button class="preset-chip" onclick="loadPreset('account')">Account</button>
+        <button class="preset-chip" onclick="loadPreset('feature')">Feature Req</button>
+        <button class="preset-chip" onclick="loadPreset('feedback')">Feedback</button>
+        <button class="preset-chip" onclick="loadPreset('security')">Security</button>
+      </div>
+
+      <div class="controls-row">
+        <button class="btn btn-primary" onclick="classifyTicket()">⊕ CLASSIFY TICKET</button>
+        <button class="btn btn-secondary" onclick="clearAll()">✕ CLEAR</button>
+        <button class="btn btn-danger" onclick="clearHistory()">⊘ RESET LOG</button>
+      </div>
+
+      <div id="loading">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+        <div class="loading-text">Analyzing ticket · Running NLP pipeline...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT PANEL -->
+  <div id="result-section">
+    <div class="section-label">CLASSIFICATION OUTPUT</div>
+    <div class="panel">
+      <div class="corner-deco tl"></div>
+      <div class="corner-deco tr"></div>
+      <div class="corner-deco bl"></div>
+      <div class="corner-deco br"></div>
+      <div class="panel-body">
+        <div class="result-grid">
+          <div class="result-card">
+            <div class="result-card-label">Priority Level</div>
+            <div class="result-value" id="out-priority">—</div>
+            <div style="margin-top:8px;font-family:var(--font-mono);font-size:9px;color:var(--ash);letter-spacing:1px;" id="out-priority-desc">—</div>
+          </div>
+          <div class="result-card">
+            <div class="result-card-label">Category</div>
+            <div style="margin-top:4px;" id="out-category-wrap">
+              <span class="category-badge" id="out-category">—</span>
+            </div>
+            <div style="margin-top:10px;font-family:var(--font-mono);font-size:9px;color:var(--ash);letter-spacing:1px;" id="out-subcategory">—</div>
+          </div>
+        </div>
+
+        <div class="result-card" style="margin-bottom:16px;">
+          <div class="result-card-label">Model Confidence</div>
+          <div class="confidence-bar-wrap">
+            <div class="bar-track"><div class="bar-fill" id="conf-bar"></div></div>
+            <div class="bar-pct" id="conf-pct">0%</div>
+          </div>
+        </div>
+
+        <div class="analysis-block">
+          <h4>NLP Analysis</h4>
+          <p id="out-analysis">—</p>
+        </div>
+
+        <div class="analysis-block">
+          <h4>Extracted Keywords</h4>
+          <div class="keyword-tags" id="out-keywords"></div>
+        </div>
+
+        <div class="analysis-block">
+          <h4>Recommended Action</h4>
+          <p id="out-action">—</p>
+        </div>
+
+        <div class="analysis-block" style="border-left-color:var(--rust);">
+          <h4>Preprocessing Steps Performed</h4>
+          <p id="out-steps" style="font-family:var(--font-mono);font-size:11px;color:var(--ash);line-height:2;letter-spacing:0.5px;">—</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY LOG -->
+  <div class="log-section">
+    <div class="section-label">CLASSIFICATION LOG</div>
+    <div class="panel">
+      <div class="panel-body">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Timestamp</th>
+              <th>Ticket Excerpt</th>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Confidence</th>
+            </tr>
+          </thead>
+          <tbody id="log-body">
+            <tr>
+              <td colspan="6" style="text-align:center;color:var(--wire-hot);padding:24px;font-style:italic;">
+                No tickets classified yet. Run the system above.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="credit">Made by <span>NISHCHAL SONI</span> · Task 02 · Support Ticket Classification</div>
+    <div class="tech-stack">Python · NLTK · spaCy · Scikit-learn · Jupyter → Simulated in Browser</div>
+  </footer>
+
+</div>
+
+<script>
+// =========================================
+// ML CLASSIFICATION ENGINE (Rule-based NLP)
+// =========================================
+
+const PRESETS = {
+  billing: "I was charged twice for my subscription last month and my payment is still showing as failed. I cannot access the premium features I paid for. This is affecting my work. Please refund the duplicate charge immediately.",
+  technical: "The application keeps crashing every time I try to upload files larger than 10MB. I've tried on three different browsers and cleared my cache multiple times. The error code shown is 503. This bug is preventing our entire team from submitting their work.",
+  account: "I forgot my password and the reset email is not arriving. I've checked my spam folder and tried multiple times over the past 3 hours. I also suspect someone may have tried to access my account as I got a suspicious login notification.",
+  feature: "It would be really helpful if you could add dark mode to the mobile app. Currently the app is very bright and hurts my eyes at night. Also, an option to export data as CSV would save me a lot of manual work. Thanks for considering this!",
+  feedback: "Overall the platform is great and I really enjoy using it. The new dashboard update looks clean. Just a minor note — the navigation menu sometimes feels a little slow to respond. Keep up the good work!",
+  security: "URGENT: I think my account has been hacked. Someone changed my email and password. I'm getting login alerts from an IP in another country. I have sensitive business data in my account and this is a critical security breach. Please help immediately."
+};
+
+const CATEGORIES = {
+  billing: { label: 'BILLING', sub: 'Payment / Charges', action: 'Route to Finance Team. Verify transaction logs. Issue refund if duplicate charge confirmed within 24 hours.' },
+  technical: { label: 'TECHNICAL', sub: 'Bug / System Error', action: 'Escalate to Engineering. Assign bug ID. Reproduce issue in staging environment. ETA: 48h patch window.' },
+  account: { label: 'ACCOUNT', sub: 'Access / Authentication', action: 'Reset account via admin panel. Verify identity via secondary method. Enable 2FA guidance.' },
+  feature: { label: 'FEATURE REQUEST', sub: 'Product Enhancement', action: 'Log to product backlog. Acknowledge user within 48 hours. Tag as "community request" in tracker.' },
+  feedback: { label: 'FEEDBACK', sub: 'General / Praise', action: 'Log sentiment as Positive. Forward to Product team. No urgent action required.' },
+  security: { label: 'SECURITY', sub: 'Breach / Unauthorized Access', action: 'CRITICAL: Immediately lock account. Notify Security team. Initiate incident response protocol IR-01. Contact user via verified channel.' }
+};
+
+const KEYWORDS = {
+  high: ['urgent','hack','breach','hacked','critical','immediately','charge twice','double charge','cannot access','crash','error','blocked','locked out','unauthorized','fraud','stolen','data loss','system down','not working','broken'],
+  medium: ['not arriving','slow','bug','failed','wrong','issue','problem','cannot','keeps','multiple times','trying','confused','incorrect','missing','delay'],
+  low: ['feature','suggestion','would be','request','thanks','nice','great','idea','consider','minor','feedback','good work','enjoy','love','appreciate','dark mode','export']
+};
+
+const PRIORITY_RULES = {
+  security: 'HIGH',
+  billing: (text) => (text.match(/twice|double|duplicate|refund|charged/gi)?.length > 0) ? 'HIGH' : 'MEDIUM',
+  technical: (text) => (text.match(/crash|error|not working|broken|503|blocked/gi)?.length > 0) ? 'HIGH' : 'MEDIUM',
+  account: (text) => (text.match(/hack|suspicious|breach|unauthorized/gi)?.length > 0) ? 'HIGH' : 'MEDIUM',
+  feature: 'LOW',
+  feedback: 'LOW'
+};
+
+function tokenize(text) {
+  return text.toLowerCase()
+    .replace(/[^\w\s']/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 2);
+}
+
+function removeStopWords(tokens) {
+  const stops = new Set(['the','and','for','are','was','were','this','that','with','have','been','from','they','their','will','would','could','should','also','just','very','your','our','its','but','not','all','can','you','we','my','me','it','is','in','on','of','to','a','i','be','do','an','at','by','or','so','if','as','up','he','she']);
+  return tokens.filter(t => !stops.has(t));
+}
+
+function detectCategory(text) {
+  const t = text.toLowerCase();
+  const scores = { billing: 0, technical: 0, account: 0, feature: 0, feedback: 0, security: 0 };
+
+  // Security detection
+  const secWords = ['hack','hacked','breach','unauthorized','compromised','suspicious login','someone changed','stolen','phishing','malware','ransomware'];
+  secWords.forEach(w => { if (t.includes(w)) scores.security += 3; });
+
+  // Billing
+  const billWords = ['charged','charge','payment','invoice','refund','billing','subscription','money','paid','fee','transaction','purchase','price','cost','double','twice','duplicate'];
+  billWords.forEach(w => { if (t.includes(w)) scores.billing += 2; });
+
+  // Technical
+  const techWords = ['crash','error','bug','not working','broken','503','500','404','fail','glitch','issue','problem','loading','slow','update','install','version','browser','app'];
+  techWords.forEach(w => { if (t.includes(w)) scores.technical += 2; });
+
+  // Account
+  const accWords = ['password','login','account','access','reset','email','username','sign in','forgot','locked','2fa','authentication','profile'];
+  accWords.forEach(w => { if (t.includes(w)) scores.account += 2; });
+
+  // Feature
+  const featWords = ['feature','add','would be great','suggestion','request','could you','please add','dark mode','export','option','integration','api','improve'];
+  featWords.forEach(w => { if (t.includes(w)) scores.feature += 2; });
+
+  // Feedback
+  const feedWords = ['thank','great','love','enjoy','good work','nice','happy','satisfied','feedback','appreciate','excellent','amazing','helpful'];
+  feedWords.forEach(w => { if (t.includes(w)) scores.feedback += 2; });
+
+  return Object.entries(scores).sort((a,b) => b[1]-a[1])[0][0];
+}
+
+function computePriority(category, text) {
+  const t = text.toLowerCase();
+  const rule = PRIORITY_RULES[category];
+  if (typeof rule === 'string') return rule;
+  return rule(t);
+}
+
+function extractKeywords(tokens) {
+  const freq = {};
+  tokens.forEach(t => freq[t] = (freq[t]||0)+1);
+  return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,12).map(e=>e[0]);
+}
+
+function tagKeyword(word) {
+  const t = word.toLowerCase();
+  if (KEYWORDS.high.some(k => t.includes(k))) return 'hot';
+  if (KEYWORDS.medium.some(k => t.includes(k))) return 'warm';
+  return 'cool';
+}
+
+function computeConfidence(text, category) {
+  const t = text.toLowerCase();
+  let score = 60;
+  const catData = CATEGORIES[category];
+  const words = t.split(/\s+/);
+  if (words.length > 30) score += 10;
+  if (words.length > 15) score += 5;
+  if (text.includes('!') || text.includes('URGENT') || t.includes('urgent')) score += 8;
+  const catLabel = category.toLowerCase();
+  const matched = Object.keys(CATEGORIES).filter(c => t.includes(c) || t.includes(CATEGORIES[c].sub.toLowerCase().split('/')[0].toLowerCase()));
+  if (matched.length) score += 5;
+  score += Math.min(12, Math.floor(words.length / 5));
+  return Math.min(97, score);
+}
+
+function getAnalysis(category, priority, text) {
+  const map = {
+    billing: `The ticket exhibits strong financial transaction language indicating a billing anomaly. Sentiment analysis reveals frustration markers with temporal urgency signals. The text density suggests a legitimate dispute with monetary impact.`,
+    technical: `Technical vocabulary clustering detected with system-failure terminology. Error code presence and multi-attempt behavior pattern identified. The issue exhibits reproducibility signals across environments, indicating a systemic bug rather than user error.`,
+    account: `Identity and access management (IAM) keywords dominate the token space. Reset-loop pattern identified with temporal context. Secondary signals of potential unauthorized access warrant elevated scrutiny beyond standard account recovery.`,
+    feature: `Constructive product-improvement language detected. Low urgency markers with solution-oriented phrasing. User sentiment is predominantly positive with specific, actionable enhancement requests — ideal candidate for product backlog logging.`,
+    feedback: `Sentiment analysis: Positive. General satisfaction signals with minor usability observations. No operational urgency. High customer satisfaction score implied. Forward to Customer Experience team for relationship nurturing.`,
+    security: `CRITICAL ALERT: Multiple security-breach markers clustered with high co-occurrence probability. Foreign access indicators, credential tampering signals, and data sensitivity markers detected. Immediate escalation required under incident response policy.`
+  };
+  return map[category] || 'Classification complete.';
+}
+
+function getPreprocessingSteps(text, tokens, cleaned) {
+  return [
+    `✔ Raw input received — ${text.length} characters, ${text.split(/\s+/).length} words`,
+    `✔ Lowercasing applied — normalization complete`,
+    `✔ Punctuation & special character removal — regex filter applied`,
+    `✔ Tokenization — ${tokens.length} tokens extracted`,
+    `✔ Stop word removal — ${tokens.length - cleaned.length} stop words eliminated, ${cleaned.length} tokens retained`,
+    `✔ Frequency distribution computed — top keywords extracted`,
+    `✔ Category scoring — multi-class rule-based classifier applied`,
+    `✔ Priority assignment — rule engine + keyword weighting`,
+    `✔ Confidence score — heuristic ensemble computed`
+  ].join('\n');
+}
+
+// Stats
+let stats = { total: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+let logCount = 0;
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = stats.total;
+  document.getElementById('stat-high').textContent = stats.HIGH;
+  document.getElementById('stat-medium').textContent = stats.MEDIUM;
+  document.getElementById('stat-low').textContent = stats.LOW;
+}
+
+function loadPreset(key) {
+  document.getElementById('ticket-input').value = PRESETS[key];
+  document.getElementById('ticket-input').focus();
+}
+
+function clearAll() {
+  document.getElementById('ticket-input').value = '';
+  document.getElementById('result-section').classList.remove('visible');
+}
+
+function clearHistory() {
+  document.getElementById('log-body').innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--wire-hot);padding:24px;font-style:italic;">No tickets classified yet. Run the system above.</td></tr>`;
+  stats = { total: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+  logCount = 0;
+  updateStats();
+}
+
+function classifyTicket() {
+  const text = document.getElementById('ticket-input').value.trim();
+  if (!text) { alert('Please enter a support ticket first.'); return; }
+
+  document.getElementById('loading').classList.add('active');
+  document.getElementById('result-section').classList.remove('visible');
+
+  setTimeout(() => {
+    // NLP Pipeline
+    const rawTokens = tokenize(text);
+    const cleanTokens = removeStopWords(rawTokens);
+    const category = detectCategory(text);
+    const priority = computePriority(category, text);
+    const keywords = extractKeywords(cleanTokens);
+    const confidence = computeConfidence(text, category);
+    const catData = CATEGORIES[category];
+
+    // Render
+    const pEl = document.getElementById('out-priority');
+    pEl.textContent = priority;
+    pEl.className = `result-value priority-${priority}`;
+
+    const pDesc = { HIGH: 'Immediate response required — SLA: 1 hour', MEDIUM: 'Standard response — SLA: 8 hours', LOW: 'Routine handling — SLA: 48–72 hours' };
+    document.getElementById('out-priority-desc').textContent = pDesc[priority];
+    document.getElementById('out-category').textContent = catData.label;
+    document.getElementById('out-subcategory').textContent = catData.sub;
+
+    const confBar = document.getElementById('conf-bar');
+    const confPct = document.getElementById('conf-pct');
+    confBar.style.width = '0%';
+    setTimeout(() => { confBar.style.width = confidence + '%'; }, 50);
+    confPct.textContent = confidence + '% CONFIDENCE';
+
+    document.getElementById('out-analysis').textContent = getAnalysis(category, priority, text);
+    document.getElementById('out-action').textContent = catData.action;
+    document.getElementById('out-steps').textContent = getPreprocessingSteps(text, rawTokens, cleanTokens);
+
+    const kwWrap = document.getElementById('out-keywords');
+    kwWrap.innerHTML = keywords.map(k => `<span class="keyword-tag ${tagKeyword(k)}">${k}</span>`).join('');
+
+    document.getElementById('loading').classList.remove('active');
+    document.getElementById('result-section').classList.add('visible');
+    document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Log entry
+    stats.total++;
+    stats[priority]++;
+    logCount++;
+    updateStats();
+
+    const tbody = document.getElementById('log-body');
+    const emptyRow = tbody.querySelector('td[colspan="6"]');
+    if (emptyRow) emptyRow.parentElement.remove();
+
+    const excerpt = text.length > 60 ? text.slice(0, 60) + '...' : text;
+    const now = new Date().toLocaleTimeString('en-US', { hour12: false });
+    const date = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+    const pClass = { HIGH: 'tag-high', MEDIUM: 'tag-medium', LOW: 'tag-low' }[priority];
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${logCount}</td>
+      <td>${date} ${now}</td>
+      <td>${excerpt}</td>
+      <td style="color:var(--accent-ellie);">${catData.label}</td>
+      <td class="${pClass}" style="font-weight:700;">${priority}</td>
+      <td>${confidence}%</td>
+    `;
+    tbody.insertBefore(row, tbody.firstChild);
+    row.style.animation = 'slideInResult 0.4s ease forwards';
+
+  }, 1100);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TicketSense · Demo | Nishchal Soni</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+
+:root {
+  --void: #030405;
+  --deep: #070a0e;
+  --panel: #0c1018;
+  --card: #111620;
+  --raised: #181f2e;
+  --wire: #1e2535;
+  --wire2: #2a3448;
+  --rust: #7a2f1c;
+  --rust2: #b84520;
+  --rust3: #e05a28;
+  --moss: #243318;
+  --moss2: #3d5a22;
+  --moss3: #6b9e3a;
+  --moss4: #94cc52;
+  --gold: #8a6f30;
+  --gold2: #c4a040;
+  --gold3: #e8c060;
+  --ash: #4a5568;
+  --ash2: #718096;
+  --ash3: #a0aec0;
+  --ivory: #ccc8c0;
+  --white: #e8e4dc;
+  --blood: #3d0808;
+  --spore: #1a2810;
+  --font-hud: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-serif: 'Crimson Pro', serif;
+  --glow-g: rgba(107,158,58,0.35);
+  --glow-r: rgba(224,90,40,0.4);
+  --glow-g2: rgba(148,204,82,0.2);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--void);
+  color: var(--ivory);
+  font-family: var(--font-hud);
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* NOISE TEXTURE */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: 0.6;
+}
+
+/* SCANLINES */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.07) 3px, rgba(0,0,0,0.07) 4px);
+  pointer-events: none; z-index: 0;
+}
+
+.scan-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--moss3) 30%, var(--moss4) 50%, var(--moss3) 70%, transparent 100%);
+  opacity: 0.25;
+  animation: scandown 8s linear infinite;
+  z-index: 1000; pointer-events: none;
+}
+@keyframes scandown { 0% { top: -2px; } 100% { top: 100vh; } }
+
+/* VIGNETTE */
+.vignette {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(3,4,5,0.85) 100%);
+  pointer-events: none; z-index: 1;
+}
+
+/* =============== HERO =============== */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(36,51,24,0.5) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 80% at 20% 80%, rgba(122,47,28,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 20%, rgba(107,158,58,0.1) 0%, transparent 50%),
+    linear-gradient(180deg, var(--void) 0%, var(--deep) 50%, var(--void) 100%);
+  z-index: -1;
+}
+
+/* Animated spore particles */
+.spore { position: absolute; border-radius: 50%; pointer-events: none; }
+.spore-1 { width: 3px; height: 3px; background: var(--moss3); top: 20%; left: 15%; animation: float1 12s ease-in-out infinite; opacity: 0.6; }
+.spore-2 { width: 2px; height: 2px; background: var(--rust3); top: 60%; left: 80%; animation: float2 9s ease-in-out infinite; opacity: 0.4; }
+.spore-3 { width: 4px; height: 4px; background: var(--moss4); top: 75%; left: 35%; animation: float1 15s ease-in-out infinite reverse; opacity: 0.3; }
+.spore-4 { width: 2px; height: 2px; background: var(--gold3); top: 30%; left: 70%; animation: float2 11s ease-in-out infinite; opacity: 0.5; }
+.spore-5 { width: 3px; height: 3px; background: var(--moss3); top: 50%; left: 10%; animation: float1 13s ease-in-out infinite 2s; opacity: 0.4; }
+.spore-6 { width: 2px; height: 2px; background: var(--rust2); top: 85%; left: 60%; animation: float2 10s ease-in-out infinite 1s; opacity: 0.5; }
+
+@keyframes float1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(20px, -30px) scale(1.3); }
+  66% { transform: translate(-15px, 20px) scale(0.8); }
+}
+@keyframes float2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-25px, -20px); }
+}
+
+/* Decorative corner lines */
+.hero-corner { position: absolute; width: 80px; height: 80px; }
+.hero-corner.tl { top: 40px; left: 40px; border-top: 1px solid var(--moss2); border-left: 1px solid var(--moss2); }
+.hero-corner.tr { top: 40px; right: 40px; border-top: 1px solid var(--rust); border-right: 1px solid var(--rust); }
+.hero-corner.bl { bottom: 40px; left: 40px; border-bottom: 1px solid var(--rust); border-left: 1px solid var(--rust); }
+.hero-corner.br { bottom: 40px; right: 40px; border-bottom: 1px solid var(--moss2); border-right: 1px solid var(--moss2); }
+
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--moss3);
+  margin-bottom: 28px;
+  display: flex; align-items: center; gap: 16px;
+  animation: fadeUp 0.8s ease forwards;
+  opacity: 0;
+}
+
+.hero-eyebrow::before, .hero-eyebrow::after {
+  content: '';
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--moss3));
+}
+.hero-eyebrow::after { transform: scaleX(-1); }
+
+.hero-title {
+  font-family: var(--font-hud);
+  font-size: clamp(52px, 12vw, 110px);
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 0.9;
+  text-transform: uppercase;
+  animation: fadeUp 0.8s 0.15s ease forwards;
+  opacity: 0;
+  position: relative;
+}
+
+.hero-title .t1 { color: var(--white); display: block; }
+.hero-title .t2 {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--rust3);
+  display: block;
+  position: relative;
+}
+
+.hero-title .t2::after {
+  content: 'SENSE';
+  position: absolute; inset: 0;
+  color: var(--rust3);
+  -webkit-text-stroke: 0;
+  clip-path: inset(0 100% 0 0);
+  animation: fill-text 1.5s 1.2s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes fill-text {
+  to { clip-path: inset(0 0% 0 0); }
+}
+
+.hero-sub {
+  font-family: var(--font-serif);
+  font-size: clamp(16px, 2.5vw, 22px);
+  color: var(--ash3);
+  font-style: italic;
+  margin-top: 24px;
+  max-width: 560px;
+  line-height: 1.6;
+  animation: fadeUp 0.8s 0.3s ease forwards;
+  opacity: 0;
+}
+
+.hero-cta-row {
+  display: flex; gap: 16px; margin-top: 48px;
+  animation: fadeUp 0.8s 0.45s ease forwards;
+  opacity: 0;
+  flex-wrap: wrap; justify-content: center;
+}
+
+.cta-btn {
+  font-family: var(--font-hud);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 14px 32px;
+  position: relative;
+  transition: all 0.25s;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  display: inline-block;
+}
+
+.cta-primary {
+  background: var(--moss);
+  color: var(--moss4);
+  border: 1px solid var(--moss2);
+}
+.cta-primary:hover {
+  background: var(--moss2);
+  color: var(--white);
+  box-shadow: 0 0 30px var(--glow-g), 0 0 60px var(--glow-g2);
+  transform: translateY(-2px);
+}
+
+.cta-secondary {
+  background: transparent;
+  color: var(--ash3);
+  border: 1px solid var(--wire2);
+}
+.cta-secondary:hover {
+  border-color: var(--rust2);
+  color: var(--rust3);
+  box-shadow: 0 0 20px var(--glow-r);
+  transform: translateY(-2px);
+}
+
+.hero-scroll-hint {
+  position: absolute; bottom: 36px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--ash);
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px;
+  animation: fadeUp 0.8s 1s ease forwards;
+  opacity: 0;
+}
+.scroll-arrow { width: 1px; height: 30px; background: linear-gradient(180deg, var(--ash), transparent); animation: scrollpulse 2s ease-in-out infinite; }
+@keyframes scrollpulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+/* =============== SECTION BASE =============== */
+section { position: relative; z-index: 2; }
+
+.section-wrap { max-width: 1060px; margin: 0 auto; padding: 100px 32px; }
+
+.section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 5px;
+  color: var(--moss3);
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+}
+.section-eyebrow::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--wire2), transparent); }
+
+.section-title {
+  font-family: var(--font-hud);
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--white);
+  margin-bottom: 16px;
+}
+
+.section-desc {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: var(--ash3);
+  line-height: 1.7;
+  max-width: 640px;
+  font-style: italic;
+}
+
+/* DIVIDER */
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--wire2) 20%, var(--wire2) 80%, transparent); margin: 0 32px; }
+
+/* =============== ABOUT SECTION =============== */
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 56px;
+}
+@media (max-width: 700px) { .about-grid { grid-template-columns: 1fr; } }
+
+.about-card {
+  background: var(--panel);
+  border: 1px solid var(--wire);
+  padding: 28px;
+  position: relative;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.about-card::before { content: ''; position: absolute; top: 0; left: 0; width: 2px; height: 100%; background: var(--moss3); opacity: 0.5; }
+.about-card:hover { border-color: var(--wire2); transform: translateY(-4px); }
+
+.about-card-icon { font-size: 28px; margin-bottom: 16px; }
+.about-card-title {
+  font-family: var(--font-hud);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--white);
+  margin-bottom: 10px;
+}
+.about-card-desc {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  color: var(--ash3);
+  line-height: 1.65;
+}
+
+/* =============== PIPELINE SECTION =============== */
+.pipeline-bg { background: linear-gradient(180deg, var(--void) 0%, var(--deep) 50%, var(--void) 100%); }
+
+.pipeline-steps { margin-top: 60px; position: relative; }
+
+.pipeline-line {
+  position: absolute;
+  left: 28px; top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, var(--moss), var(--rust2), var(--moss));
+  opacity: 0.4;
+}
+
+.pipeline-step {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 40px;
+  position: relative;
+  padding-left: 72px;
+}
+
+.step-node {
+  position: absolute;
+  left: 16px; top: 4px;
+  width: 24px; height: 24px;
+  border: 1px solid var(--moss2);
+  background: var(--panel);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--moss3);
+  z-index: 2;
+}
+
+.step-content {
+  flex: 1;
+  background: var(--panel);
+  border: 1px solid var(--wire);
+  padding: 20px 24px;
+  position: relative;
+}
+.step-content::before { content: ''; position: absolute; left: -1px; top: 0; bottom: 0; width: 2px; background: var(--moss2); }
+
+.step-title {
+  font-family: var(--font-hud);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--moss4);
+  margin-bottom: 8px;
+}
+
+.step-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ash2);
+  background: var(--deep);
+  border: 1px solid var(--wire);
+  padding: 12px 14px;
+  margin-top: 10px;
+  line-height: 1.8;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.step-desc {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--ash3);
+  margin-top: 8px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* Keyword colors in code */
+.kw-blue { color: #7eb3e0; }
+.kw-green { color: var(--moss4); }
+.kw-yellow { color: var(--gold3); }
+.kw-red { color: var(--rust3); }
+.kw-comment { color: var(--ash); }
+
+/* =============== CATEGORIES SECTION =============== */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 56px;
+}
+@media (max-width: 800px) { .cat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .cat-grid { grid-template-columns: 1fr; } }
+
+.cat-card {
+  background: var(--panel);
+  border: 1px solid var(--wire);
+  padding: 24px 20px;
+  position: relative;
+  transition: all 0.3s;
+  overflow: hidden;
+}
+
+.cat-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.cat-card:hover::after { opacity: 1; }
+.cat-card:hover { transform: translateY(-3px); }
+
+.cat-card.billing { border-top: 2px solid var(--gold2); }
+.cat-card.billing::after { background: linear-gradient(180deg, rgba(138,111,48,0.08) 0%, transparent 100%); }
+.cat-card.billing:hover { border-color: var(--gold2); box-shadow: 0 0 20px rgba(196,160,64,0.2); }
+
+.cat-card.technical { border-top: 2px solid var(--moss3); }
+.cat-card.technical::after { background: linear-gradient(180deg, rgba(61,90,34,0.1) 0%, transparent 100%); }
+.cat-card.technical:hover { border-color: var(--moss3); box-shadow: 0 0 20px var(--glow-g2); }
+
+.cat-card.account { border-top: 2px solid var(--ash3); }
+.cat-card.account:hover { border-color: var(--ash3); box-shadow: 0 0 20px rgba(160,174,192,0.15); }
+
+.cat-card.security { border-top: 2px solid var(--rust3); }
+.cat-card.security::after { background: linear-gradient(180deg, rgba(122,47,28,0.12) 0%, transparent 100%); }
+.cat-card.security:hover { border-color: var(--rust3); box-shadow: 0 0 20px var(--glow-r); }
+
+.cat-card.feature { border-top: 2px solid #7090c0; }
+.cat-card.feature:hover { border-color: #7090c0; box-shadow: 0 0 20px rgba(112,144,192,0.2); }
+
+.cat-card.feedback { border-top: 2px solid #9070a0; }
+.cat-card.feedback:hover { border-color: #9070a0; box-shadow: 0 0 20px rgba(144,112,160,0.2); }
+
+.cat-icon { font-size: 22px; margin-bottom: 14px; }
+.cat-name {
+  font-family: var(--font-hud);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+.cat-desc { font-family: var(--font-serif); font-size: 13px; color: var(--ash2); line-height: 1.6; }
+.cat-sla {
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  padding: 4px 10px;
+  display: inline-block;
+}
+.sla-high { color: var(--rust3); border: 1px solid var(--rust); background: rgba(61,8,8,0.4); }
+.sla-medium { color: var(--gold3); border: 1px solid var(--gold); background: rgba(61,40,8,0.4); }
+.sla-low { color: var(--moss4); border: 1px solid var(--moss2); background: rgba(13,20,8,0.4); }
+
+/* =============== DEMO TERMINAL =============== */
+.terminal-section-bg { background: var(--deep); }
+
+.terminal-wrap {
+  background: var(--panel);
+  border: 1px solid var(--wire2);
+  position: relative;
+  margin-top: 56px;
+  overflow: hidden;
+}
+
+.terminal-header {
+  background: var(--card);
+  border-bottom: 1px solid var(--wire);
+  padding: 12px 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.term-dot { width: 10px; height: 10px; border-radius: 50%; }
+.term-dot.r { background: #e05a28; }
+.term-dot.y { background: #c4a040; }
+.term-dot.g { background: #6b9e3a; }
+
+.term-title { font-family: var(--font-mono); font-size: 11px; color: var(--ash2); margin-left: auto; letter-spacing: 2px; }
+
+.terminal-body { padding: 28px; }
+
+.term-line {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 2;
+  display: block;
+  opacity: 0;
+  animation: termtype 0.3s forwards;
+}
+
+.term-line:nth-child(1) { animation-delay: 0.2s; }
+.term-line:nth-child(2) { animation-delay: 0.6s; }
+.term-line:nth-child(3) { animation-delay: 1.0s; }
+.term-line:nth-child(4) { animation-delay: 1.4s; }
+.term-line:nth-child(5) { animation-delay: 1.8s; }
+.term-line:nth-child(6) { animation-delay: 2.2s; }
+.term-line:nth-child(7) { animation-delay: 2.6s; }
+.term-line:nth-child(8) { animation-delay: 3.0s; }
+.term-line:nth-child(9) { animation-delay: 3.4s; }
+.term-line:nth-child(10) { animation-delay: 3.8s; }
+.term-line:nth-child(11) { animation-delay: 4.2s; }
+.term-line:nth-child(12) { animation-delay: 4.6s; }
+
+@keyframes termtype { to { opacity: 1; } }
+
+.t-prompt { color: var(--moss3); }
+.t-cmd { color: var(--ivory); }
+.t-out { color: var(--ash2); padding-left: 20px; }
+.t-ok { color: var(--moss4); }
+.t-warn { color: var(--gold3); }
+.t-err { color: var(--rust3); }
+.t-info { color: #7090c0; }
+.t-blank { min-height: 20px; }
+
+.term-cursor {
+  display: inline-block;
+  width: 8px; height: 14px;
+  background: var(--moss3);
+  vertical-align: middle;
+  animation: blinkcur 1s step-end infinite;
+}
+@keyframes blinkcur { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* =============== METRICS =============== */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border: 1px solid var(--wire);
+  margin-top: 56px;
+  overflow: hidden;
+}
+@media (max-width: 700px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.metric-cell {
+  padding: 28px 20px;
+  border-right: 1px solid var(--wire);
+  background: var(--panel);
+  position: relative;
+  text-align: center;
+  transition: background 0.3s;
+}
+.metric-cell:last-child { border-right: none; }
+.metric-cell:hover { background: var(--card); }
+
+.metric-num {
+  font-family: var(--font-hud);
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.metric-num .unit { font-size: 22px; color: var(--ash3); }
+.metric-lbl { font-family: var(--font-mono); font-size: 9px; letter-spacing: 3px; color: var(--ash); text-transform: uppercase; }
+.metric-sub { font-family: var(--font-serif); font-size: 12px; color: var(--ash2); margin-top: 6px; font-style: italic; }
+
+.metric-cell:nth-child(1) .metric-num { color: var(--moss4); }
+.metric-cell:nth-child(2) .metric-num { color: var(--gold3); }
+.metric-cell:nth-child(3) .metric-num { color: var(--rust3); }
+.metric-cell:nth-child(4) .metric-num { color: var(--ash3); }
+
+/* =============== TOOLS SECTION =============== */
+.tools-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 48px;
+}
+
+.tool-chip {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--wire);
+  padding: 12px 20px;
+  transition: all 0.2s;
+  position: relative;
+}
+.tool-chip::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: var(--moss3); transform: scaleX(0); transition: transform 0.2s; }
+.tool-chip:hover { border-color: var(--wire2); transform: translateY(-2px); }
+.tool-chip:hover::before { transform: scaleX(1); }
+
+.tool-icon { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.tool-name { font-family: var(--font-hud); font-size: 13px; font-weight: 600; letter-spacing: 1px; color: var(--ivory); text-transform: uppercase; }
+.tool-role { font-family: var(--font-mono); font-size: 9px; color: var(--ash); letter-spacing: 1px; margin-top: 2px; }
+
+/* =============== FINAL CTA =============== */
+.final-section {
+  background: linear-gradient(180deg, var(--void) 0%, var(--deep) 50%, var(--void) 100%);
+  text-align: center;
+}
+
+.final-wrap { max-width: 700px; margin: 0 auto; padding: 120px 32px; }
+
+.final-quote {
+  font-family: var(--font-serif);
+  font-size: clamp(20px, 4vw, 32px);
+  color: var(--ash3);
+  font-style: italic;
+  line-height: 1.5;
+  margin-bottom: 48px;
+  position: relative;
+  padding: 32px 40px;
+  border: 1px solid var(--wire);
+}
+.final-quote::before { content: '\201C'; position: absolute; top: 10px; left: 16px; font-size: 60px; color: var(--rust2); opacity: 0.4; font-family: Georgia, serif; line-height: 1; }
+
+.final-author {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--rust3);
+  text-transform: uppercase;
+  margin-top: 16px;
+}
+
+.final-cta-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+/* =============== FOOTER =============== */
+footer {
+  border-top: 1px solid var(--wire);
+  padding: 36px 32px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  position: relative; z-index: 2;
+}
+
+.footer-brand {
+  font-family: var(--font-hud);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.footer-brand span { color: var(--rust3); }
+
+.footer-meta { font-family: var(--font-mono); font-size: 10px; color: var(--ash); letter-spacing: 2px; }
+.footer-meta a { color: var(--moss3); text-decoration: none; }
+.footer-meta a:hover { color: var(--moss4); }
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* SCROLL REVEAL — simple version */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.shown { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<div class="scan-bar"></div>
+<div class="vignette"></div>
+
+<!-- FLOATING PARTICLES -->
+<div class="spore spore-1"></div>
+<div class="spore spore-2"></div>
+<div class="spore spore-3"></div>
+<div class="spore spore-4"></div>
+<div class="spore spore-5"></div>
+<div class="spore spore-6"></div>
+
+<!-- ======== HERO ======== -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-corner tl"></div>
+  <div class="hero-corner tr"></div>
+  <div class="hero-corner bl"></div>
+  <div class="hero-corner br"></div>
+
+  <div class="hero-eyebrow">TASK 02 &nbsp;·&nbsp; MACHINE LEARNING PROJECT &nbsp;·&nbsp; BY NISHCHAL SONI</div>
+
+  <h1 class="hero-title">
+    <span class="t1">TICKET</span>
+    <span class="t2">SENSE</span>
+  </h1>
+
+  <p class="hero-sub">An NLP-powered support ticket classification engine — automatically categorizing, prioritizing, and routing customer issues with machine precision.</p>
+
+  <div class="hero-scroll-hint">
+    <div class="scroll-arrow"></div>
+    SCROLL TO EXPLORE
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ======== ABOUT ======== -->
+<section>
+  <div class="section-wrap">
+    <div class="section-eyebrow reveal">OVERVIEW</div>
+    <h2 class="section-title reveal">What Is TicketSense?</h2>
+    <p class="section-desc reveal">A complete machine learning system that reads raw support ticket text, cleans and tokenizes it, classifies it into categories, and assigns response priority — all without human intervention.</p>
+
+    <div class="about-grid">
+      <div class="about-card reveal">
+        <div class="about-card-icon">🧬</div>
+        <div class="about-card-title">NLP Text Pipeline</div>
+        <div class="about-card-desc">Full preprocessing chain: lowercasing, punctuation removal, tokenization, stop word filtering, and lemmatization using NLTK and spaCy.</div>
+      </div>
+      <div class="about-card reveal">
+        <div class="about-card-icon">🏷️</div>
+        <div class="about-card-title">Multi-Class Classification</div>
+        <div class="about-card-desc">Scikit-learn logistic regression model with TF-IDF vectorization identifies 6 ticket categories with ~91% accuracy.</div>
+      </div>
+      <div class="about-card reveal">
+        <div class="about-card-icon">🚨</div>
+        <div class="about-card-title">Priority Assignment</div>
+        <div class="about-card-desc">Rule-based engine assigns HIGH / MEDIUM / LOW priority with custom logic per category — security breaches always escalate to HIGH.</div>
+      </div>
+      <div class="about-card reveal">
+        <div class="about-card-icon">📊</div>
+        <div class="about-card-title">Model Evaluation</div>
+        <div class="about-card-desc">Performance tracked via classification report, confusion matrix, and F1-score. Confidence scores shown per classification.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ======== PIPELINE ======== -->
+<section class="pipeline-bg">
+  <div class="section-wrap">
+    <div class="section-eyebrow reveal">SYSTEM ARCHITECTURE</div>
+    <h2 class="section-title reveal">ML Pipeline</h2>
+    <p class="section-desc reveal">Step-by-step breakdown of how a raw support ticket flows through the classification engine.</p>
+
+    <div class="pipeline-steps">
+      <div class="pipeline-line"></div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node">01</div>
+        <div class="step-content">
+          <div class="step-title">Text Cleaning & Normalization</div>
+          <div class="step-desc">Converts raw ticket text to lowercase and strips punctuation, special characters, and extra whitespace.</div>
+          <div class="step-code"><span class="kw-blue">def</span> <span class="kw-green">clean_text</span>(text):
+    text = text.<span class="kw-yellow">lower</span>()
+    text = re.<span class="kw-yellow">sub</span>(<span class="kw-red">r'[^\w\s]'</span>, <span class="kw-red">' '</span>, text)
+    <span class="kw-blue">return</span> text.<span class="kw-yellow">strip</span>()</div>
+        </div>
+      </div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node">02</div>
+        <div class="step-content">
+          <div class="step-title">Tokenization</div>
+          <div class="step-desc">Splits cleaned text into individual word tokens using NLTK's word_tokenize.</div>
+          <div class="step-code"><span class="kw-blue">from</span> nltk <span class="kw-blue">import</span> word_tokenize
+tokens = <span class="kw-green">word_tokenize</span>(cleaned_text)
+<span class="kw-comment"># → ['payment', 'failed', 'charged', 'twice', ...]</span></div>
+        </div>
+      </div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node">03</div>
+        <div class="step-content">
+          <div class="step-title">Stop Word Removal</div>
+          <div class="step-desc">Filters out common English words that carry no signal (the, and, is, was…) to isolate meaningful tokens.</div>
+          <div class="step-code">stop_words = <span class="kw-yellow">set</span>(stopwords.<span class="kw-green">words</span>(<span class="kw-red">'english'</span>))
+tokens = [t <span class="kw-blue">for</span> t <span class="kw-blue">in</span> tokens
+          <span class="kw-blue">if</span> t <span class="kw-blue">not in</span> stop_words]</div>
+        </div>
+      </div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node">04</div>
+        <div class="step-content">
+          <div class="step-title">TF-IDF Vectorization</div>
+          <div class="step-desc">Converts token lists into numerical feature matrices using Term Frequency–Inverse Document Frequency weighting.</div>
+          <div class="step-code">vectorizer = <span class="kw-green">TfidfVectorizer</span>(
+    max_features=<span class="kw-yellow">5000</span>,
+    ngram_range=(<span class="kw-yellow">1</span>, <span class="kw-yellow">2</span>)  <span class="kw-comment"># unigrams + bigrams</span>
+)
+X = vectorizer.<span class="kw-green">fit_transform</span>(corpus)</div>
+        </div>
+      </div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node">05</div>
+        <div class="step-content">
+          <div class="step-title">Classification Model</div>
+          <div class="step-desc">Logistic Regression with One-vs-Rest strategy classifies tickets into 6 categories with ~91% weighted F1-score.</div>
+          <div class="step-code">model = <span class="kw-green">LogisticRegression</span>(max_iter=<span class="kw-yellow">1000</span>, C=<span class="kw-yellow">5.0</span>)
+model.<span class="kw-green">fit</span>(X_train, y_train)
+category = model.<span class="kw-green">predict</span>([new_ticket])[<span class="kw-yellow">0</span>]</div>
+        </div>
+      </div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node">06</div>
+        <div class="step-content">
+          <div class="step-title">Priority Assignment</div>
+          <div class="step-desc">Rule engine applies category-specific logic to assign response priority. Security always returns HIGH regardless.</div>
+          <div class="step-code">RULES = {
+    <span class="kw-red">'security'</span>: <span class="kw-red">'HIGH'</span>,
+    <span class="kw-red">'billing'</span>:  <span class="kw-blue">lambda</span> t: <span class="kw-red">'HIGH'</span> <span class="kw-blue">if</span> <span class="kw-red">'double'</span> <span class="kw-blue">in</span> t <span class="kw-blue">else</span> <span class="kw-red">'MEDIUM'</span>,
+    <span class="kw-red">'feature'</span>:  <span class="kw-red">'LOW'</span>
+}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ======== CATEGORIES ======== -->
+<section>
+  <div class="section-wrap">
+    <div class="section-eyebrow reveal">CLASSIFICATION TARGETS</div>
+    <h2 class="section-title reveal">6 Ticket Categories</h2>
+    <p class="section-desc reveal">The classifier routes every ticket into one of six predefined categories, each with its own SLA and escalation path.</p>
+
+    <div class="cat-grid">
+      <div class="cat-card billing reveal">
+        <div class="cat-icon">💰</div>
+        <div class="cat-name">Billing</div>
+        <div class="cat-desc">Payment failures, duplicate charges, refund requests, subscription issues, and invoice disputes.</div>
+        <div class="cat-sla sla-high">HIGH if duplicate</div>
+      </div>
+      <div class="cat-card technical reveal">
+        <div class="cat-icon">⚙️</div>
+        <div class="cat-name">Technical</div>
+        <div class="cat-desc">App crashes, system errors, API failures, browser compatibility issues, performance degradation.</div>
+        <div class="cat-sla sla-medium">MEDIUM → HIGH if down</div>
+      </div>
+      <div class="cat-card account reveal">
+        <div class="cat-icon">🔑</div>
+        <div class="cat-name">Account</div>
+        <div class="cat-desc">Login failures, password resets, email changes, 2FA setup, profile access issues.</div>
+        <div class="cat-sla sla-medium">MEDIUM SLA: 8h</div>
+      </div>
+      <div class="cat-card security reveal">
+        <div class="cat-icon">🛡️</div>
+        <div class="cat-name">Security</div>
+        <div class="cat-desc">Account breaches, unauthorized access, credential theft, suspicious login activity, data exposure.</div>
+        <div class="cat-sla sla-high">ALWAYS HIGH — 1h SLA</div>
+      </div>
+      <div class="cat-card feature reveal">
+        <div class="cat-icon">✨</div>
+        <div class="cat-name">Feature Request</div>
+        <div class="cat-desc">Enhancement proposals, new functionality suggestions, integration requests, UX improvements.</div>
+        <div class="cat-sla sla-low">LOW — Backlog queue</div>
+      </div>
+      <div class="cat-card feedback reveal">
+        <div class="cat-icon">💬</div>
+        <div class="cat-name">Feedback</div>
+        <div class="cat-desc">General satisfaction messages, praise, minor usability notes, survey responses.</div>
+        <div class="cat-sla sla-low">LOW — 48–72h SLA</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ======== TERMINAL DEMO ======== -->
+<section class="terminal-section-bg">
+  <div class="section-wrap">
+    <div class="section-eyebrow reveal">LIVE DEMO</div>
+    <h2 class="section-title reveal">System In Action</h2>
+    <p class="section-desc reveal">Watch the NLP pipeline process a real ticket from raw input to classified output.</p>
+
+    <div class="terminal-wrap reveal">
+      <div class="terminal-header">
+        <div class="term-dot r"></div>
+        <div class="term-dot y"></div>
+        <div class="term-dot g"></div>
+        <div class="term-title">ticketsense · nlp_pipeline.py</div>
+      </div>
+      <div class="terminal-body">
+        <span class="term-line"><span class="t-prompt">$</span> <span class="t-cmd">python classifier.py --input "I was charged twice and my account is now locked"</span></span>
+        <span class="term-line t-blank"></span>
+        <span class="term-line"><span class="t-info">[PIPELINE]</span> <span class="t-out">Starting NLP preprocessing...</span></span>
+        <span class="term-line"><span class="t-ok">  ✔</span> <span class="t-out">Lowercasing applied</span></span>
+        <span class="term-line"><span class="t-ok">  ✔</span> <span class="t-out">Tokenized → 12 tokens extracted</span></span>
+        <span class="term-line"><span class="t-ok">  ✔</span> <span class="t-out">Stop words removed → 7 tokens retained</span></span>
+        <span class="term-line"><span class="t-ok">  ✔</span> <span class="t-out">Keywords: ['charged', 'twice', 'account', 'locked']</span></span>
+        <span class="term-line t-blank"></span>
+        <span class="term-line"><span class="t-info">[CLASSIFIER]</span> <span class="t-out">Category scores: billing=0.82, account=0.61, technical=0.12</span></span>
+        <span class="term-line"><span class="t-warn">  → CATEGORY  : BILLING</span></span>
+        <span class="term-line"><span class="t-err">  → PRIORITY  : HIGH (duplicate charge detected)</span></span>
+        <span class="term-line"><span class="t-ok">  → CONFIDENCE: 89%</span></span>
+        <span class="term-line"><span class="t-ok">  → ACTION    : Route to Finance Team. Issue refund within SLA.</span></span>
+        <span class="term-line"><span class="t-prompt">$</span> <span class="term-cursor"></span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ======== METRICS ======== -->
+<section>
+  <div class="section-wrap">
+    <div class="section-eyebrow reveal">MODEL PERFORMANCE</div>
+    <h2 class="section-title reveal">Evaluation Metrics</h2>
+    <p class="section-desc reveal">Performance benchmarks on a balanced 6-class test dataset of 400 labeled support tickets.</p>
+
+    <div class="metrics-grid reveal">
+      <div class="metric-cell">
+        <div class="metric-num">91<span class="unit">%</span></div>
+        <div class="metric-lbl">Accuracy</div>
+        <div class="metric-sub">Overall classification</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-num">0.90</div>
+        <div class="metric-lbl">F1 Score</div>
+        <div class="metric-sub">Weighted average</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-num">6</div>
+        <div class="metric-lbl">Categories</div>
+        <div class="metric-sub">Multi-class output</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-num">3</div>
+        <div class="metric-lbl">Priority Levels</div>
+        <div class="metric-sub">HIGH / MEDIUM / LOW</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ======== TOOLS ======== -->
+<section>
+  <div class="section-wrap">
+    <div class="section-eyebrow reveal">TECHNOLOGY STACK</div>
+    <h2 class="section-title reveal">Built With</h2>
+
+    <div class="tools-row">
+      <div class="tool-chip reveal">
+        <div class="tool-icon">🐍</div>
+        <div><div class="tool-name">Python 3.10</div><div class="tool-role">Core Language</div></div>
+      </div>
+      <div class="tool-chip reveal">
+        <div class="tool-icon">🔤</div>
+        <div><div class="tool-name">NLTK</div><div class="tool-role">Tokenization · Stop Words</div></div>
+      </div>
+      <div class="tool-chip reveal">
+        <div class="tool-icon">🧠</div>
+        <div><div class="tool-name">spaCy</div><div class="tool-role">Lemmatization · NER</div></div>
+      </div>
+      <div class="tool-chip reveal">
+        <div class="tool-icon">📐</div>
+        <div><div class="tool-name">Scikit-learn</div><div class="tool-role">TF-IDF · LogisticReg</div></div>
+      </div>
+      <div class="tool-chip reveal">
+        <div class="tool-icon">📓</div>
+        <div><div class="tool-name">Jupyter</div><div class="tool-role">Notebook Environment</div></div>
+      </div>
+      <div class="tool-chip reveal">
+        <div class="tool-icon">🌐</div>
+        <div><div class="tool-name">HTML5 / JS</div><div class="tool-role">Offline Browser App</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ======== FINAL CTA ======== -->
+<section class="final-section">
+  <div class="final-wrap">
+    <div class="final-quote reveal">
+      When you're lost in the darkness, look for the light.<br>
+      When your support queue is chaos — let the machine classify it.
+      <div class="final-author">— Nishchal Soni · TicketSense</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ======== FOOTER ======== -->
+<footer>
+  <div class="footer-brand">Ticket<span>Sense</span></div>
+  <div class="footer-meta">Task 02 · Support Ticket Classification · Made by <strong style="color:var(--rust3)">Nishchal Soni</strong></div>
+  <div class="footer-meta">Python · NLTK · spaCy · Scikit-learn</div>
+</footer>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('shown'), i * 60);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
